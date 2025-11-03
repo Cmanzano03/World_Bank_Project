@@ -34,15 +34,20 @@ Project of the subject Data visualization, where wil be developed an interactive
         -   Click on a country → mini time series of Internet %
     -   **Purpose:** Highlight regional disparities in digital and educational access using geographic spatial patterns.
 -   **Q4: Which countries show outlier behavior in Internet access or GDP per capita relative to their regional or income group, and how can these deviations be characterized?**
-    -   **Visualization:** Dynamic Scatterplot + Coordinated Bar View (linked views)
-    -   **Task Abstraction:** *Locate and Identify Outliers* to characterize atypical countries within socioeconomic groups
-    -   **Filter/Interaction:**
-        -   Year slider (2000–2020)
-        -   Region or income group selector
-        -   Hover tooltip (country, Internet %, GDP, literacy, population)
-        -   Click on country → show side panel or mini bar chart with other indicators
-        -   Crucial Addition (VA Integration): Color encoding is dynamically assigned based on K-Means Clustering (k=3 or 4) run on key socioeconomic indicators (Internet %, GDP, Literacy, etc.). This analysis provides the initial grouping/model.
-        -   Outlier Detection: Countries that show atypical behavior relative to their cluster membership are visually highlighted (popout) using the Shape channel. This supports the Visual Analytics Mantra: "Analyze first, show the important...". • Purpose: Identify and explore countries whose profile deviates from patterns established by the automated cluster model, supporting the discovery of unexpected
+    -   **Visualization:** Dynamic K-Means Scatterplot + Coordinated Profile Chart (Linked Views)
+    -   **Task Abstraction:** *Locate and Identify Outliers* to characterize atypical countries within socioeconomic groups.
+    -   **Controls & Interactions:**
+        -   `Year Slider (2000–2020):` Recalculates the K-Means clustering model dynamically for the selected year.
+        -   `Log/Linear Scale Toggle:` Switches the GDP X-axis to aid visual exploration, demonstrating the necessity of a log scale for this data.
+        -   `Outlier Percentile Slider:` Adjusts the percentile threshold (e.g., p>=95) used to classify outliers based on their distance from their cluster centroid.
+        -   `VA Integration (K-Means):` Color and grouping are assigned by a K-Means (k=3) model run on two standardized variables: **`Internet users (%)`** and **`log(GDP per capita)`**.
+        -   `Outlier Detection (Shape):` Outliers are marked with a triangle. They are defined as the countries with the largest Euclidean distance from their assigned cluster's centroid in the 2D standardized space (i.e., outside the user-defined percentile).
+        -   **`Hover Interaction 1 (Tooltip):`** The main tooltip is designed to reveal the core *insight* of the analysis by comparing:
+            -   **`K-Means Cluster:`** (e.g., "Medium development")
+            -   **`World Bank Income Group:`** (e.g., "Lower middle income")
+            -   It also provides context with Region, Internet %, GDP, and Literacy %.
+        -   **`Hover Interaction 2 (Coordinated Chart):`** A bar chart in the sidebar updates instantly on hover. It displays the country's **Z-score profile**, visually explaining *why* it was clustered that way by showing its standardized `Internet` and `log(GDP)` values.
+    -   **Purpose:** Identify and explore countries whose digital/economic profile (K-Means) deviates from their official economic classification (World Bank), such as discovering low-income countries with surprisingly high-tech adoption (e.g., Kosovo).
 
 We would perform an unsupervised **k-means clustering** (k=3/4) on **Internet%**, **GDP per capita**, and **Literacy%** to reveal country groupings (e.g., high-GDP/high-Internet; low-GDP/low-Internet; low-GDP/high-Internet). Clusters are used for color encoding in the scatter plot and to highlight countries that deviate from their **World Bank income group**, supporting outlier discovery within the Visual Analytics framework.
 
@@ -59,11 +64,9 @@ We would perform an unsupervised **k-means clustering** (k=3/4) on **Internet%**
 
 | Indicator | World Bank Code | Used in charts |
 |----|----|----|
-| Internet users (% of population) | `IT.NET.USER.ZS` | 1, 2, 3, 5 |
-| GDP per capita (current US\$) | `NY.GDP.PCAP.CD` | 2 |
-| Literacy rate, adult (% people ages 15+) | `SE.ADT.LITR.ZS` | 3 |
-| Female employment in services (% of female employment) | `SL.SRV.EMPL.FE.ZS` | 4 |
-| Total employment in services (% of total employment) | `SL.SRV.EMPL.ZS` | 4 |
+| Internet users (% of population) | `IT.NET.USER.ZS` | 1, 2, 3, 4, 5 |
+| GDP per capita (current US\$) | `NY.GDP.PCAP.CD` | 2, 4 |
+| Literacy rate, adult (% people ages 15+) | `SE.ADT.LITR.ZS` | 3, 4 |
 | Population | `SP.POP.TOTL` | 5 |
 | Region / Income group (metadata) | — | All |
 
