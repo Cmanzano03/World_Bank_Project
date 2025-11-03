@@ -5,6 +5,8 @@ library(dplyr)
 library(plotly)
 library(tidyr)
 library(colorspace)
+library(scales)
+library(stringr)
 
 # ------------------------------------------------------------------
 # 1. LOAD ALL MODULES
@@ -39,13 +41,29 @@ if (!file.exists(file_path_pop)) {
 df_population <- read_csv(file_path_pop, skip = 4) %>%
   dplyr::select(-last_col())
 
+# --- Load GDP Data ---
+file_path_gdp <- "data/GDP.csv"
+if (!file.exists(file_path_gdp)) {
+  stop("Error: GDP.csv not found in data/ folder")
+}
+df_gdp <- read_csv(file_path_gdp, skip = 4) %>%
+  dplyr::select(-last_col())
+
+# --- Load Literacy Data ---
+file_path_lit <- "data/literacy.csv"
+if (!file.exists(file_path_lit)) {
+  stop("Error: literacy.csv not found in data/ folder")
+}
+df_literacy <- read_csv(file_path_lit, skip = 4) %>%
+  dplyr::select(-last_col())
+
 # --- Load Region Data ---
 file_path_regions <- "data/metadataCountry.csv"
 if (!file.exists(file_path_regions)) {
   stop("Error: metadataCountry.csv not found in data/ folder")
 }
 df_regions <- read_csv(file_path_regions, show_col_types = FALSE) %>%
-  select(`Country Code`, Region) %>%
+  select(`Country Code`, Region, `IncomeGroup`) %>%
   filter(!is.na(Region) & Region != "")
 
 
@@ -93,9 +111,14 @@ server <- function(input, output, session) {
   vis1_server("vis1")
   vis2_server("vis2")
   vis3_server("vis3")
-  vis4_server("vis4")
   
-  # Visualization 5 needs all three datasets
+  vis4_server("vis4",
+              data_internet = df_internet,
+              data_gdp = df_gdp,
+              data_literacy = df_literacy,
+              data_metadata = df_regions
+  )
+  
   vis5_server("vis5", 
               data_internet = df_internet, 
               data_population = df_population, 
