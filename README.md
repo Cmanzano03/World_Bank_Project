@@ -39,7 +39,7 @@ Project of the subject Data visualization, where wil be developed an interactive
     -   **Controls & Interactions:**
         -   `Year Slider (2000–2020):` Recalculates the K-Means clustering model dynamically for the selected year.
         -   `Log/Linear Scale Toggle:` Switches the GDP X-axis to aid visual exploration, demonstrating the necessity of a log scale for this data.
-        -   `Outlier Percentile Slider:` Adjusts the percentile threshold (e.g., p>=95) used to classify outliers based on their distance from their cluster centroid.
+        -   `Outlier Percentile Slider:` Adjusts the percentile threshold (e.g., p\>=95) used to classify outliers based on their distance from their cluster centroid.
         -   `VA Integration (K-Means):` Color and grouping are assigned by a K-Means (k=3) model run on two standardized variables: **`Internet users (%)`** and **`log(GDP per capita)`**.
         -   `Outlier Detection (Shape):` Outliers are marked with a triangle. They are defined as the countries with the largest Euclidean distance from their assigned cluster's centroid in the 2D standardized space (i.e., outside the user-defined percentile).
         -   **`Hover Interaction 1 (Tooltip):`** The main tooltip is designed to reveal the core *insight* of the analysis by comparing:
@@ -62,12 +62,12 @@ We would perform an unsupervised **k-means clustering** (k=3/4) on **Internet%**
 
 # Datasets needed
 
-| Indicator | World Bank Code | Used in charts |
-|----|----|----|
-| Internet users (% of population) | `IT.NET.USER.ZS` | 1, 2, 3, 4, 5 |
-| GDP per capita (current US\$) | `NY.GDP.PCAP.CD` | 2, 4 |
-| Literacy rate, adult (% people ages 15+) | `SE.ADT.LITR.ZS` | 3, 4 |
-| Population | `SP.POP.TOTL` | 5 |
-| Region / Income group (metadata) | — | All |
+| Indicator                                | World Bank Code  | Used in charts |
+|------------------------------------------|------------------|----------------|
+| Internet users (% of population)         | `IT.NET.USER.ZS` | 1, 2, 3, 4, 5  |
+| GDP per capita (current US\$)            | `NY.GDP.PCAP.CD` | 2, 4           |
+| Literacy rate, adult (% people ages 15+) | `SE.ADT.LITR.ZS` | 3, 4           |
+| Population                               | `SP.POP.TOTL`    | 5              |
+| Region / Income group (metadata)         | —                | All            |
 
 ==Q4: clustering (k-means) to color code the countries in the scatter plot, when you click on a country, its socioeconomic profile in a bar char.==
