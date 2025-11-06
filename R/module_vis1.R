@@ -9,11 +9,11 @@ vis1_ui <- function(id) {
     h2("Visualization 1"),
     hr(),
     fluidRow(
-      box(title = "Controls", status = "warning", width = 12,
+      box(title = "Controls", status = "warning", solidHeader = TRUE, width = 12,
           p("Add Vis 1 controls here")
           # e.g., sliderInput(ns("year_range_vis1"), ... )
       ),
-      box(title = "Plot", status = "primary", width = 12,
+      box(title = "Plot", status = "primary", solidHeader = TRUE, width = 12,
           p("Add Vis 1 plot output here")
           # e.g., plotOutput(ns("line_plot_vis1"))
       )

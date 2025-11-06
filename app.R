@@ -57,6 +57,15 @@ if (!file.exists(file_path_lit)) {
 df_literacy <- read_csv(file_path_lit, skip = 4) %>%
   dplyr::select(-last_col())
 
+# --- Load Bubble data ---
+#
+file_path_bubble <- "data/cleaned_world_bank_data_Q2.csv"
+if (!file.exists(file_path_bubble)) {
+  stop(paste("Error:", file_path_bubble, "not found. Make sure it is in the same folder as app.R"))
+}
+data_bubble <- read_csv(file_path_bubble)
+
+
 # --- Load Region Data ---
 file_path_regions <- "data/metadataCountry.csv"
 if (!file.exists(file_path_regions)) {
@@ -109,9 +118,9 @@ server <- function(input, output, session) {
   
   intro_server("intro")
   vis1_server("vis1")
-  vis2_server("vis2")
+  # Call Visualization 2 Server
+  vis2_server("vis2", reactive(data_bubble))  
   vis3_server("vis3")
-  
   vis4_server("vis4",
               data_internet = df_internet,
               data_gdp = df_gdp,

@@ -20,7 +20,7 @@ Project of the subject Data visualization, where wil be developed an interactive
         -   Year slider or animation (2000–2020)
         -   Variable selector for X/Y axes (GDP, literacy, female employment)
         -   Continent/region selector
-        -   Hover tooltip (country, Internet %, selected indicator, population)
+            -   Hover tooltip (country, Internet %, selected indicator, population)
         -   Toggle linear/log GDP axis
         -   Click to highlight a country’s trajectory (optional)
     -   **Purpose:** Allow deeper exploration of relationships beyond simple GDP–Internet correlation, supporting hypothesis generation.
