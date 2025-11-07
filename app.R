@@ -7,6 +7,7 @@ library(tidyr)
 library(colorspace)
 library(scales)
 library(stringr)
+library(tidyverse)
 
 # ------------------------------------------------------------------
 # 1. LOAD ALL MODULES

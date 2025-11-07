@@ -1,9 +1,6 @@
 # ----------------------------------------------
 # VISUALIZATION 2: Dynamic Bubble Scatterplot (Q2)
 # ----------------------------------------------
-library(shiny)
-library(tidyverse)
-library(plotly) # Using plotly for its excellent hover tooltips
 
 # --- Module UI ---
 vis2_ui <- function(id) {
