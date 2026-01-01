@@ -121,7 +121,9 @@ server <- function(input, output, session) {
   vis1_server("vis1")
   # Call Visualization 2 Server
   vis2_server("vis2", reactive(data_bubble))  
-  vis3_server("vis3")
+  vis3_server("vis3", 
+              data_internet = df_internet, 
+              data_literacy = df_literacy)
   vis4_server("vis4",
               data_internet = df_internet,
               data_gdp = df_gdp,
