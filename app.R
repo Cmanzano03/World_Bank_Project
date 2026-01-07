@@ -8,6 +8,9 @@ library(colorspace)
 library(scales)
 library(stringr)
 library(tidyverse)
+library(rnaturalearth)
+library(rnaturalearthdata)
+library(sf)
 
 # ------------------------------------------------------------------
 # 1. LOAD ALL MODULES
@@ -75,7 +78,6 @@ if (!file.exists(file_path_regions)) {
 df_regions <- read_csv(file_path_regions, show_col_types = FALSE) %>%
   select(`Country Code`, Region, `IncomeGroup`) %>%
   filter(!is.na(Region) & Region != "")
-
 
 # ------------------------------------------------------------------
 # 3. USER INTERFACE (UI)
