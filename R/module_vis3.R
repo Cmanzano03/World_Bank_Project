@@ -34,7 +34,17 @@ vis3_ui <- function(id) {
                  # Hover Indicator
                  tags$hr(style = "border-top: 1px solid #d2d6de;"), 
                  p(strong("Hover Details:")), 
-                 plotlyOutput(ns("hover_bars"), height = "160px")
+                 plotlyOutput(ns("hover_bars"), height = "160px"),
+                 # Ranking
+                 tags$hr(style = "border-top: 1px solid #d2d6de;"),
+                 
+                 p(strong("Internet - Top-Ranking Countries (%)")),
+                 htmlOutput(ns("top5_internet_list")),
+                 
+                 br(),
+                 
+                 p(strong("Literacy - Top-Ranking Countries (%)")),
+                 htmlOutput(ns("top5_literacy_list"))
              )
       ),
       
@@ -63,7 +73,7 @@ vis3_ui <- function(id) {
                    plotlyOutput(ns("mini_time_series"), height = "300px")),
                
                box(title = "Correlation Analysis", status = "success", solidHeader = TRUE, width = 6,
-                   plotlyOutput(ns("correlation_scatter"), height = "340px"))
+                   plotlyOutput(ns("correlation_scatter"), height = "360px"))
              )
       )
     )
@@ -287,7 +297,11 @@ vis3_server <- function(id, data_internet, data_literacy) {
       
       plot_ly(bars, x = ~value, y = ~metric, type = "bar", orientation = "h", marker = list(color = "#F1C40F")) %>%
         layout(title = row$`Country Name`[1], xaxis = list(range = c(0, 100), title = "%"), yaxis = list(title = ""), margin = list(l = 110, r = 30, t = 45, b = 30))
-    })
+      
+      })
+    
+    
+    
     
     # Time Series Chart (Optimized)
     output$mini_time_series <- renderPlotly({
@@ -371,6 +385,56 @@ vis3_server <- function(id, data_internet, data_literacy) {
               text = ~paste0("Country: ", `Country Name`, "<br>Literacy: ", round(Literacy_val, 1), "%", "<br>Internet: ", round(Internet_val, 1), "%"), hoverinfo = "text") %>%
         layout(title = paste0(display_region, " Correlation (", input$year_select, ")"),
                xaxis = list(title = "Literacy Rate (%)", range = c(0, 105)), yaxis = list(title = "Internet Access (%)", range = c(0, 105)), margin = list(b = 50))
+    })
+    
+    # Ranking
+    
+    current_region_scope <- reactive({
+      if (input$region_focus == "world") return(world_ref$iso3)
+      if (input$region_focus %in% c("africa", "europe", "asia")) return(world_ref %>% filter(continent == input$region_focus) %>% pull(iso3))
+      if (input$region_focus == "north america") return(world_ref %>% filter(subregion %in% c("northern america", "central america", "caribbean")) %>% pull(iso3))
+      if (input$region_focus == "south america") return(world_ref %>% filter(subregion == "south america") %>% pull(iso3))
+      world_ref$iso3
+    })
+    
+    # Top 5 Internet
+    output$top5_internet_list <- renderUI({
+      top_df <- current_year_data() %>%
+        filter(nchar(`Country Code`) == 3) %>%
+        filter(`Country Code` %in% current_region_scope()) %>%
+        filter(!is.na(Internet_val)) %>%
+        arrange(desc(Internet_val)) %>%
+        head(5)
+      
+      if(nrow(top_df) == 0) return(HTML("<i>No data</i>"))
+      
+      lines <- paste0(
+        "<b>", 1:nrow(top_df), ".</b> ", 
+        top_df$`Country Name`, 
+        " • ", 
+        "", round(top_df$Internet_val, 1), "%"
+      )
+      HTML(paste(lines, collapse = "<br/>"))
+    })
+    
+    # Top 5 Literacy
+    output$top5_literacy_list <- renderUI({
+      top_df <- current_year_data() %>%
+        filter(nchar(`Country Code`) == 3) %>%
+        filter(`Country Code` %in% current_region_scope()) %>%
+        filter(!is.na(Literacy_val)) %>%
+        arrange(desc(Literacy_val)) %>%
+        head(5)
+      
+      if(nrow(top_df) == 0) return(HTML("<i>No data</i>"))
+      
+      lines <- paste0(
+        "<b>", 1:nrow(top_df), ".</b> ", 
+        top_df$`Country Name`, 
+        " • ", 
+        "", round(top_df$Literacy_val, 1), "%"
+      )
+      HTML(paste(lines, collapse = "<br/>"))
     })
   })
 }
