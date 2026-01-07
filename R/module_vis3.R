@@ -38,12 +38,12 @@ vis3_ui <- function(id) {
                  # Ranking
                  tags$hr(style = "border-top: 1px solid #d2d6de;"),
                  
-                 p(strong("Internet - Top-Ranking Countries (%)")),
+                 p(strong("Internet - Top-Ranking Countries")),
                  htmlOutput(ns("top5_internet_list")),
                  
                  br(),
                  
-                 p(strong("Literacy - Top-Ranking Countries (%)")),
+                 p(strong("Literacy - Top-Ranking Countries")),
                  htmlOutput(ns("top5_literacy_list"))
              )
       ),
