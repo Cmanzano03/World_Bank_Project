@@ -42,12 +42,27 @@ vis3_ui <- function(id) {
     ),
     
     fluidRow(
+      box(title = "Hover indicator", status = "warning", solidHeader = TRUE, width = 12,
+          plotlyOutput(ns("hover_bars"), height = "140px"))
+    ),
+    
+    fluidRow(
       box(title = "Evolution Over Time", status = "info", solidHeader = TRUE, width = 6,
-          plotlyOutput(ns("mini_time_series"), height = "350px")),
+          checkboxGroupInput(
+            ns("avg_overlay"),
+            "Comparison lines:",
+            choices = c("World average" = "world", "Region average" = "region"),
+            selected = c("world"),
+            inline = TRUE
+          ),
+          plotlyOutput(ns("mini_time_series"), height = "350px")
+      ),
       # Le titre ici est statique dans l'UI mais nous allons gérer le titre du graphe dynamiquement
       box(title = "Correlation Analysis", status = "success", solidHeader = TRUE, width = 6,
           plotlyOutput(ns("correlation_scatter"), height = "350px"))
     )
+    
+    
   )
 }
 
@@ -63,9 +78,61 @@ vis3_server <- function(id, data_internet, data_literacy) {
       ) %>%
       dplyr::filter(!is.na(iso3), nchar(iso3) == 3)
     
+    # --- Helpers: region of a selected country (based on world_ref)
+    get_country_region_iso3 <- function(iso3) {
+      row <- world_ref %>% dplyr::filter(iso3 == !!iso3)
+      if (nrow(row) == 0) return(world_ref$iso3)
+      
+      cont <- row$continent[1]
+      subr <- row$subregion[1]
+      
+      # Continents (Africa/Europe/Asia) -> continent group
+      if (cont %in% c("africa", "europe", "asia")) {
+        return(world_ref %>% dplyr::filter(continent == cont) %>% dplyr::pull(iso3))
+      }
+      
+      # Americas: split more finely
+      if (subr == "south america") {
+        return(world_ref %>% dplyr::filter(subregion == "south america") %>% dplyr::pull(iso3))
+      }
+      
+      # North America (broad): Northern + Central + Caribbean
+      if (subr %in% c("northern america", "central america", "caribbean")) {
+        return(world_ref %>%
+                 dplyr::filter(subregion %in% c("northern america", "central america", "caribbean")) %>%
+                 dplyr::pull(iso3))
+      }
+      
+      # Fallback
+      world_ref$iso3
+    }
+    
+    # --- Average time series builder (Option A compatible: uses filled values)
+    avg_series <- function(iso3_vec = NULL) {
+      df <- full_data_all() %>%
+        dplyr::filter(nchar(`Country Code`) == 3) %>%
+        dplyr::filter(!is.na(Internet_val) | !is.na(Literacy_val))
+      
+      if (!is.null(iso3_vec)) {
+        df <- df %>% dplyr::filter(`Country Code` %in% iso3_vec)
+      }
+      
+      df %>%
+        dplyr::group_by(Year) %>%
+        dplyr::summarise(
+          Internet_avg = mean(Internet_val, na.rm = TRUE),
+          Literacy_avg = mean(Literacy_val, na.rm = TRUE),
+          .groups = "drop"
+        ) %>%
+        dplyr::arrange(as.numeric(Year))
+    }
+    
+    
     ns <- session$ns
     
     selection <- reactiveValues(code = NULL)
+    
+    hover_state <- reactiveValues(code = NULL)
     
     # Helper: Tooltip intelligent
     get_tooltip <- function(df) {
@@ -134,7 +201,13 @@ vis3_server <- function(id, data_internet, data_literacy) {
                   marker = list(line = list(color = '#2980b9', width = 0.8)),
                   colorbar = list(title = "Internet (%)", tickvals = cb_ticks_vals, ticktext = cb_ticks_text, len = 0.9)) %>%
         layout(geo = geo_cfg, uirevision = input$region_focus, margin = list(l = 0, r = 0, b = 0, t = 0))
-      p %>% event_register("plotly_relayout") %>% event_register("plotly_click")
+      p %>%
+        event_register("plotly_relayout") %>%
+        event_register("plotly_click") %>%
+        event_register("plotly_doubleclick") %>%
+        event_register("plotly_hover") %>%
+        event_register("plotly_unhover")
+      
     })
     
     output$map_literacy <- renderPlotly({
@@ -146,7 +219,13 @@ vis3_server <- function(id, data_internet, data_literacy) {
                   marker = list(line = list(color = '#c0392b', width = 0.8)),
                   colorbar = list(title = "Literacy (%)", tickvals = cb_ticks_vals, ticktext = cb_ticks_text, len = 0.9)) %>%
         layout(geo = geo_cfg, uirevision = input$region_focus, margin = list(l = 0, r = 0, b = 0, t = 0))
-      p %>% event_register("plotly_relayout") %>% event_register("plotly_click")
+      p %>%
+        event_register("plotly_relayout") %>%
+        event_register("plotly_click") %>%
+        event_register("plotly_doubleclick") %>%
+        event_register("plotly_hover") %>%
+        event_register("plotly_unhover")
+      
     })
     
     # Sync Zoom
@@ -174,6 +253,19 @@ vis3_server <- function(id, data_internet, data_literacy) {
     observeEvent(event_data("plotly_relayout", source = ns("map_internet")), { handle_relayout(ns("map_internet"), "map_literacy") }, ignoreInit = TRUE)
     observeEvent(event_data("plotly_relayout", source = ns("map_literacy")), { handle_relayout(ns("map_literacy"), "map_internet") }, ignoreInit = TRUE)
     
+    observeEvent(event_data("plotly_hover", source = ns("map_internet")), {
+      h <- event_data("plotly_hover", source = ns("map_internet"))
+      if (is.null(h)) return()
+      hover_state$code <- h$location %||% h$key
+    }, ignoreInit = TRUE)
+    
+    observeEvent(event_data("plotly_hover", source = ns("map_literacy")), {
+      h <- event_data("plotly_hover", source = ns("map_literacy"))
+      if (is.null(h)) return()
+      hover_state$code <- h$location %||% h$key
+    }, ignoreInit = TRUE)
+    
+    
     # Clics
     observeEvent(event_data("plotly_click", source = ns("map_internet")), {
       click <- event_data("plotly_click", source = ns("map_internet"))
@@ -183,6 +275,76 @@ vis3_server <- function(id, data_internet, data_literacy) {
       click <- event_data("plotly_click", source = ns("map_literacy"))
       if(!is.null(click)) selection$code <- if(!is.null(click$location)) click$location else click$key
     })
+    
+    output$hover_bars <- renderPlotly({
+      df <- current_year_data()
+      
+      # Aucun pays survolé
+      if (is.null(hover_state$code)) {
+        return(
+          plot_ly() %>%
+            layout(
+              annotations = list(list(
+                text = "Hover a country on the maps to see its values.",
+                x = 0.5, y = 0.5,
+                xref = "paper", yref = "paper",
+                showarrow = FALSE,
+                font = list(size = 13)
+              )),
+              xaxis = list(visible = FALSE),
+              yaxis = list(visible = FALSE),
+              margin = list(l = 10, r = 10, b = 10, t = 10)
+            )
+        )
+      }
+      
+      row <- df %>% filter(`Country Code` == hover_state$code)
+      if (nrow(row) == 0) return(plot_ly())
+      
+      country  <- row$`Country Name`[1]
+      internet <- row$Internet_val[1]
+      literacy <- row$Literacy_val[1]
+      
+      # Construction des barres à afficher
+      bars <- tibble::tibble(
+        metric = c("Internet access", "Literacy rate"),
+        value  = c(internet, literacy)
+      ) %>% dplyr::filter(!is.na(value))
+      
+      # Aucun indicateur disponible
+      if (nrow(bars) == 0) {
+        return(
+          plot_ly() %>%
+            layout(
+              annotations = list(list(
+                text = paste0(country, ": no data available"),
+                x = 0.5, y = 0.5,
+                xref = "paper", yref = "paper",
+                showarrow = FALSE
+              )),
+              xaxis = list(visible = FALSE),
+              yaxis = list(visible = FALSE)
+            )
+        )
+      }
+      
+      # Barres jaunes
+      plot_ly(
+        bars,
+        x = ~value,
+        y = ~metric,
+        type = "bar",
+        orientation = "h",
+        marker = list(color = "#F1C40F")
+      ) %>%
+        layout(
+          title = paste0("Current values — ", country),
+          xaxis = list(range = c(0, 100), title = "%"),
+          yaxis = list(title = ""),
+          margin = list(l = 110, r = 30, t = 45, b = 30)
+        )
+    })
+    
     
     # 6. Graphique COMBINÉ
     output$mini_time_series <- renderPlotly({
@@ -197,10 +359,8 @@ vis3_server <- function(id, data_internet, data_literacy) {
                   sep = "<br>"
                 ),
                 showarrow = FALSE,
-                x = 0.5,
-                y = 0.5,
-                xref = "paper",
-                yref = "paper",
+                x = 0.5, y = 0.5,
+                xref = "paper", yref = "paper",
                 align = "center",
                 font = list(size = 12),
                 width = 300
@@ -212,21 +372,123 @@ vis3_server <- function(id, data_internet, data_literacy) {
         )
       }
       
-      hist_int <- data_internet %>% filter(`Country Code` == selection$code) %>% pivot_longer(cols = starts_with("20"), names_to = "Year", values_to = "Internet")
-      hist_lit <- data_literacy %>% filter(`Country Code` == selection$code) %>% pivot_longer(cols = starts_with("20"), names_to = "Year", values_to = "Literacy")
+      # --- Country history (raw)
+      hist_int <- data_internet %>%
+        filter(`Country Code` == selection$code) %>%
+        pivot_longer(cols = starts_with("20"), names_to = "Year", values_to = "Internet")
+      
+      hist_lit <- data_literacy %>%
+        filter(`Country Code` == selection$code) %>%
+        pivot_longer(cols = starts_with("20"), names_to = "Year", values_to = "Literacy")
+      
       combined_hist <- full_join(hist_int, hist_lit, by = c("Country Code", "Country Name", "Year")) %>%
-        filter(as.numeric(Year) <= 2022) %>% filter(!is.na(Internet) | !is.na(Literacy)) %>% arrange(Year)
+        filter(as.numeric(Year) <= 2022) %>%
+        filter(!is.na(Internet) | !is.na(Literacy)) %>%
+        arrange(as.numeric(Year)) %>%
+        mutate(Year_num = as.numeric(Year))
       
-      if (nrow(combined_hist) == 0) return(plot_ly() %>% layout(annotations = list(text = "No history available", showarrow = FALSE)))
+      if (nrow(combined_hist) == 0) {
+        return(plot_ly() %>% layout(annotations = list(text = "No history available", showarrow = FALSE)))
+      }
       
-      suppressWarnings({
-        plot_ly(combined_hist, x = ~Year) %>%
-          add_trace(y = ~Internet, name = "Internet Access", type = 'scatter', mode = 'lines+markers', line = list(color = '#2980b9', width = 3), marker = list(color = '#2980b9', size = 8), connectgaps = TRUE) %>%
-          add_trace(y = ~Literacy, name = "Literacy Rate", type = 'scatter', mode = 'lines+markers', line = list(color = '#c0392b', width = 3), marker = list(color = '#c0392b', size = 8), connectgaps = TRUE) %>%
-          layout(title = paste0("Trends: ", combined_hist$`Country Name`[1]), hovermode = "x unified", yaxis = list(range = c(0, 105), title = "%"),
-                 xaxis = list(title = "Year", tickformat = "d"), legend = list(orientation = 'h', x = 0.5, xanchor = 'center', y = -0.32), margin = list(b = 95))
-      })
+      # --- Averages (Option A, via filled full_data_all)
+      years_keep <- combined_hist$Year_num
+      
+      show_world  <- "world"  %in% (input$avg_overlay %||% character(0))
+      show_region <- "region" %in% (input$avg_overlay %||% character(0))
+      
+      if (show_world) {
+        world_avg <- avg_series(NULL) %>%
+          mutate(Year_num = as.numeric(Year)) %>%
+          filter(Year_num %in% years_keep)
+      }
+      
+      if (show_region) {
+        region_iso3 <- get_country_region_iso3(selection$code)
+        region_avg <- avg_series(region_iso3) %>%
+          mutate(Year_num = as.numeric(Year)) %>%
+          filter(Year_num %in% years_keep)
+      }
+      
+      # --- Vertical line on selected year
+      sel_year <- as.numeric(input$year_select)
+      
+      p <- plot_ly() %>%
+        # Country
+        add_trace(
+          data = combined_hist, x = ~Year_num, y = ~Internet,
+          name = "Internet Access (Country)",
+          type = "scatter", mode = "lines+markers",
+          line = list(color = "#2980b9", width = 3),
+          marker = list(color = "#2980b9", size = 8),
+          connectgaps = TRUE
+        ) %>%
+        add_trace(
+          data = combined_hist, x = ~Year_num, y = ~Literacy,
+          name = "Literacy Rate (Country)",
+          type = "scatter", mode = "lines+markers",
+          line = list(color = "#c0392b", width = 3),
+          marker = list(color = "#c0392b", size = 8),
+          connectgaps = TRUE
+        )
+      
+      # World average (grey dotted)
+      if (show_world) {
+        p <- p %>%
+          add_trace(
+            data = world_avg, x = ~Year_num, y = ~Internet_avg,
+            name = "Internet (World Avg)",
+            type = "scatter", mode = "lines",
+            line = list(color = "gray50", width = 2, dash = "dot"),
+            hoverinfo = "World avg Internet: %{y:.1f}%<extra></extra>"
+          ) %>%
+          add_trace(
+            data = world_avg, x = ~Year_num, y = ~Literacy_avg,
+            name = "Literacy (World Avg)",
+            type = "scatter", mode = "lines",
+            line = list(color = "gray50", width = 2, dash = "dot"),
+            hoverinfo = "World avg Literacy: %{y:.1f}%<extra></extra>"
+          )
+      }
+      
+      # Region average (grey dashed)
+      if (show_region) {
+        p <- p %>%
+          add_trace(
+            data = region_avg, x = ~Year_num, y = ~Internet_avg,
+            name = "Internet (Region Avg)",
+            type = "scatter", mode = "lines",
+            line = list(color = "gray60", width = 2, dash = "dash"),
+            hoverinfo = "World avg Literacy: %{y:.1f}%<extra></extra>"
+          ) %>%
+          add_trace(
+            data = region_avg, x = ~Year_num, y = ~Literacy_avg,
+            name = "Literacy (Region Avg)",
+            type = "scatter", mode = "lines",
+            line = list(color = "gray60", width = 2, dash = "dash"),
+            hoverinfo = "Region avg Literacy: %{y:.1f}%<extra></extra>"
+          )
+      }
+      
+      p %>%
+        layout(
+          title = paste0("Trends: ", combined_hist$`Country Name`[1]),
+          hovermode = "x unified",
+          yaxis = list(range = c(0, 105), title = "%"),
+          xaxis = list(title = "Year", tickformat = "d"),
+          shapes = list(list(
+            type = "line",
+            x0 = sel_year, x1 = sel_year,
+            y0 = 0, y1 = 1,
+            yref = "paper",
+            line = list(color = "gold", width = 2)
+          )),
+          legend = list(orientation = "h", x = 0.5, xanchor = "center", y = -0.35),
+          margin = list(b = 110)
+        )
     })
+    
+    
     
     # 7. Scatter Plot de CORRÉLATION dynamique avec FILTRE RÉGIONAL ROBUSTE
     output$correlation_scatter <- renderPlotly({
