@@ -42,7 +42,7 @@ vis3_ui <- function(id) {
     ),
     
     fluidRow(
-      box(title = "Evolution Over Time (Selected Country)", status = "info", solidHeader = TRUE, width = 6,
+      box(title = "Evolution Over Time", status = "info", solidHeader = TRUE, width = 6,
           plotlyOutput(ns("mini_time_series"), height = "350px")),
       # Le titre ici est statique dans l'UI mais nous allons gérer le titre du graphe dynamiquement
       box(title = "Correlation Analysis", status = "success", solidHeader = TRUE, width = 6,
@@ -186,7 +186,32 @@ vis3_server <- function(id, data_internet, data_literacy) {
     
     # 6. Graphique COMBINÉ
     output$mini_time_series <- renderPlotly({
-      req(selection$code)
+      if (is.null(selection$code)) {
+        return(
+          plot_ly() %>%
+            layout(
+              annotations = list(
+                text = paste(
+                  "Please select a country on the map",
+                  "to display the time series.",
+                  sep = "<br>"
+                ),
+                showarrow = FALSE,
+                x = 0.5,
+                y = 0.5,
+                xref = "paper",
+                yref = "paper",
+                align = "center",
+                font = list(size = 12),
+                width = 300
+              ),
+              xaxis = list(visible = FALSE),
+              yaxis = list(visible = FALSE),
+              margin = list(l = 10, r = 10, b = 10, t = 10)
+            )
+        )
+      }
+      
       hist_int <- data_internet %>% filter(`Country Code` == selection$code) %>% pivot_longer(cols = starts_with("20"), names_to = "Year", values_to = "Internet")
       hist_lit <- data_literacy %>% filter(`Country Code` == selection$code) %>% pivot_longer(cols = starts_with("20"), names_to = "Year", values_to = "Literacy")
       combined_hist <- full_join(hist_int, hist_lit, by = c("Country Code", "Country Name", "Year")) %>%
