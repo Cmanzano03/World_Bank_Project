@@ -1,0 +1,291 @@
+\documentclass[a4paper, 12pt]{article}
+
+% --- PACKAGES ESSENTIELS ---
+\usepackage[utf8]{inputenc}      % Encodage des caractères
+\usepackage[T1]{fontenc}         % Encodage de la police
+\usepackage[english]{babel}      % Langue anglaise (césure correcte)
+\usepackage{graphicx}            % Pour les images
+\usepackage{float}               % Pour forcer le positionnement des images (H)
+
+% --- MISE EN PAGE & MARGES ---
+\usepackage[margin=2.5cm]{geometry} % Marges standards de 2.5cm
+\usepackage{parskip}             % Ajoute de l'espace entre les paragraphes (plus moderne)
+\usepackage{microtype}           % Améliore grandement la justification du texte
+
+% --- LISTES & TITRES ---
+\usepackage{enumitem}            % Pour personnaliser les listes (puces, description)
+\usepackage{titlesec}            % Pour le style des titres
+
+% --- LIENS HYPERTEXTES ---
+\usepackage{hyperref}
+\hypersetup{
+    colorlinks=true,
+    linkcolor=black,
+    urlcolor=blue,
+    pdftitle={Data Visualization Report}
+}
+
+\begin{document}
+
+% =========================
+% Title Page
+% =========================
+\begin{titlepage}
+    \thispagestyle{empty}
+    
+    \noindent
+    \begin{minipage}{0.45\textwidth}
+        \includegraphics[width=0.6\linewidth]{title_page/upm_logo.png}
+    \end{minipage}%
+    \hfill
+    \begin{minipage}{0.45\textwidth}
+        \raggedleft
+        \includegraphics[width=0.6\linewidth]{title_page/etsi_logo.png}
+    \end{minipage}
+    
+    \vspace{1cm}
+
+    \begin{center}
+
+        {\Large \textbf{Universidad Politécnica de Madrid}}\\[0.3cm]
+        {\large Escuela Técnica Superior de Ingenieros Informáticos}\\[2cm]
+    
+    \end{center}
+
+    
+    \begin{center}
+
+        
+        {\Large Data Visualization}\\[0.5cm]
+        
+        {\LARGE \textbf{World Bank Project : An analysis of Global Connectivity, Wealth, and Education}}\\[0.3cm] % Ajoute de l'espace ici
+    \end{center}
+    
+    \vfill
+    \begin{flushleft}
+        Carlos Manzano Izquierdo\\
+        Guillermo Bermejo Babiano\\
+        Stefano Longo\\
+        Melen Laclais\\[0.4cm]
+        \texttt{carlos.manzano@alumnos.upm.es}\\
+        \texttt{guillermo.bermejo@alumnos.upm.es}\\
+        \texttt{stefano.longo@alumnos.upm.es}\\
+        \texttt{melen.laclais@alumnos.upm.es}\\
+    \end{flushleft}
+    
+    \vspace{0.8cm}
+    \begin{center}
+        Madrid, \today
+    \end{center}
+\end{titlepage}
+
+% =========================
+% Table of Contents Page
+% =========================
+\newpage
+\pagenumbering{arabic} % Numérotation romaine pour le sommaire
+\tableofcontents
+\newpage
+
+% =========================
+% Main Content
+% =========================
+
+\section{Introduction}
+
+\section{Dataset}
+
+\section{Design abstraction}
+
+\section{How has global Internet access evolved over time?}
+
+\subsection{Problem characterization}
+
+\subsection{Data and task abstraction}
+
+\subsection{Interaction and visual encoding}
+
+\subsection{Algorithmic implementation}
+
+\subsection{Results}
+
+\section{What are the potential correlations and dependencies between Internet access, GDP per capita, and other socioeconomic indicators?}
+
+\subsection{Problem characterization}
+
+\subsection{Data and task abstraction}
+
+\subsection{Interaction and visual encoding}
+
+\subsection{Algorithmic implementation}
+
+\subsection{Results}
+
+\section{Global Comparison of Digital and Educational Access}
+
+\subsection{Problem Characterization}
+
+In the context of global development, the "Digital Divide" and educational inequality are two major challenges of the last decade. While the Internet has become a fundamental tool for economic and social participation, its adoption relies heavily on foundational skills, primarily literacy. However, raw datasets from organizations like the World Bank are often fragmented or vast, making it difficult for policymakers, researchers, and the general public to intuitively understand the relationship between a population’s ability to read (Literacy Rate) and their access to digital infrastructure (Internet Access).
+
+The core problem this visualization addresses is the complexity of analyzing these two development indicators simultaneously across space and time. A simple tabular view does not reveal whether the digital gap is closing in developing regions like Sub-Saharan Africa or South Asia, nor does it highlight if high literacy is a guaranteed predictor of high internet adoption. Furthermore, regional disparities are often masked by global averages, requiring a tool that allows for granular analysis at the continent and country levels.
+
+Therefore, the objective of this analysis is to provide an interactive interface to explore the spatiotemporal evolution of these indicators. The visualization aims to answer the following key questions:
+
+% Utilisation de l'environnement 'description' pour tes questions clés
+\begin{enumerate}
+    \item \textit{How are literacy rates and internet access distributed geographically, and where are the major disparities located?}
+
+    \item \textit{Is there a positive correlation between a country's literacy rate and its internet penetration, and does this relationship hold true across all continents?}
+
+    \item \textit{How have these indicators evolved over the last two decades (2000–2022), and which regions are catching up the fastest?}
+\end{enumerate}    
+    
+\subsection{Data and Task Abstraction}
+
+The dataset consists of two primary World Bank indicators merged into a single tabular structure. The raw data was originally in a "wide" format (with years 1960–2024 as columns) and was transformed into a "long" format to facilitate time-series rendering. The primary items are countries, identified by their ISO-3 codes. The quantitative attributes mapped to visual channels are Internet Access (\% of population) and Adult Literacy Rate (\% of people ages 15 and above). These are analyzed against the sequential attribute of Year (ranging from 2000 to 2022) and the categorical attribute of Region/Continent, derived using the \texttt{countrycode} library to allow for hierarchical filtering. 
+
+A significant challenge was the sparsity of the literacy dataset, as surveys are not conducted annually. To address this, we derived a continuous dataset using a the last known value forward to subsequent years, ensuring continuous trends without artificial gaps. Additionally, we computed aggregated metrics, specifically World and Region Averages, to serve as context layers for the time-series analysis.
+
+The visualisation is designed to support several domain-specific objectives. First, it allows for correlation analysis to verify whether education level is a prerequisite for digital adoption, identifying whether countries align on a positive correlation diagonal or form distinct clusters based on their level of development, and adapts according to region. It can also compare spatial-temporal trends to track the evolution of specific countries over time, determining whether a selected country is “catching up” with the global average or falling behind. Thirdly, it summarises spatial distributions to identify continents that consistently perform well or poorly on both indicators, providing a better understanding of the digital divide. Finally, the interface facilitates ranking and search tasks, allowing users to retrieve exact values for specific items by hovering over them and to identify the best-performing countries in a selected region.
+
+\subsection{Interaction and Visual Encoding}
+
+We follow the Shneiderman's mantra: "Overview first, zoom and filter, then details-on-demand." The interface is structured to prioritize immediate comparison while minimizing cognitive load and scrolling.
+
+\begin{figure}[H]
+    \centering
+    \includegraphics[width=0.6\textwidth]{Vis_3/dashboard_layout.png}
+    \caption{Global layout showing the sidebar controls (left) and the side-by-side maps (top), allowing for direct comparison without scrolling.}
+    \label{fig:layout}
+\end{figure}
+
+\subsubsection*{Layout and Spatial Arrangement}
+To ensure a comprehensive view of the data without requiring the user to scroll, we adopted a sidebar layout for the control panel on the left. Placing parameters horizontally at the top would have pushed the analytical charts below the "fold," disrupting the user's workflow. The current layout guarantees that all four coordinated views, spatial, temporal, and relational, remain visible simultaneously within a single screen.
+
+Regarding the spatial overview, we juxtaposed the two choropleth maps side-by-side rather than using a toggle button to switch between them. A toggle design relies heavily on the user's working memory to recall the previous state, whereas juxtaposition allows for direct, eyes-on comparison. To further enhance this, we implemented a synchronized navigation mechanism: zooming or panning on one map automatically updates the viewpoint of the other. This ensures that the user always compares the exact same geographical extent, facilitating the detection of local discrepancies between digital adoption and literacy.
+
+\begin{figure}[H]
+    \centering
+    \includegraphics[width=0.6\textwidth]{Vis_3/zoom_interaction.png}
+    \caption{Synchronized zoomed view allowing for local comparison, with specific values revealed via tooltips.}
+    \label{fig:layout}
+\end{figure}
+
+\subsubsection*{Visual Encoding and Color Strategy}
+We selected distinct hues to maximize discriminability while maintaining semantic resonance. \textbf{Purple} was chosen for Internet Access, associating the color with the digital and technological infrastructure. \textbf{Green} was selected for Literacy Rate to symbolize human growth and positive social development. This color coding is consistently applied across all visualizations, including the time series lines, to prevent confusion. To aid value estimation, we utilized a discrete 5-step legend to create facility for the user to recognize the value of a color. 
+
+For the correlation scatter plot, we employed the \textbf{Viridis} color scale (transitioning from purple to green/yellow), it bridges the two primary themes and provides a perceptually uniform scale that remains legible even for color-blind users.
+
+\begin{figure}[H]
+    \centering
+    \includegraphics[width=0.4\textwidth]{Vis_3/correlation.png}
+    \caption{Viridis color scale on the correlation scatter plot.}
+    \label{fig:layout}
+\end{figure}
+
+
+\subsubsection*{Temporal Interaction and Data Handling}
+The temporal exploration is driven by a slider that allows users to select the year of analysis. This enables the observation of "live" evolution, particularly the rapid global spread of internet access. We handled the missing data: if a country lacks a survey value for the specific selected year, the system automatically retrieves and displays the last available value. This also prevents the map polygons from flashing empty during animation. The interface remains transparent about this mechanism via tooltips, which explicitly state the actual year of the data point or "\textit{No data}" if the country don't have literacy data. (e.g., \textit{"Literacy: 95\% (2015)"}). A play button also allows you to view an animation showing the gradual changes on both maps, which also changes the values of the other graphs accordingly.
+
+\begin{figure}[H]
+    \centering
+    \includegraphics[width=0.4\textwidth]{Vis_3/temporal_interaction.png}
+    \caption{Temporal evolution controls.}
+    \label{fig:temporal}
+\end{figure}
+
+We also add a red time bar to the Time Series chart to remind users which year they have selected in the slider. This allows the users to don't look again for which year they choose.
+
+\begin{figure}[H]
+    \centering
+    \includegraphics[width=0.4\textwidth]{Vis_3/temporal_interaction_time_serie.png}
+    \caption{The time series chart shows the selected year with a vertical red line marker.}
+    \label{fig:temporal}
+\end{figure}
+
+\subsubsection*{Contextualization and Details-on-Demand}
+The dashboard offers several layers of detail to support in-depth analysis. The "Evolution Over Time" chart contextualizes the selected country's performance by allowing the overlay of World and Region averages. These benchmarks are rendered as dotted lines to distinguish them from the solid country trend.
+
+\begin{figure}[H]
+    \centering
+    \includegraphics[width=0.2\textwidth]{Vis_3/tooltip_evolution_over_time.png}
+    \caption{Evolution over time tooltip.}
+    \label{fig:temporal}
+\end{figure}
+
+To support "details-on-demand," hovering over a country updates a specific "Hover Details" bar chart in the sidebar. For this chart, we opted for a neutral color palette to focus the user's attention purely on the proportional difference between the two metrics, unbiased by the thematic colors. Additionally, a dynamic "Top Ranking" list provides a textual summary of the top 5 performers in the active region, enabling users to rapidly identify top-performing nations within the selected region and verify if high internet adoption aligns with educational leadership.
+
+\begin{figure}[H]
+    \centering
+    \includegraphics[width=0.2\textwidth]{Vis_3/hover_details.png}
+    \caption{Hover details for direct comparison.}
+    \label{fig:temporal}
+\end{figure}
+
+\begin{figure}[H]
+    \centering
+    \includegraphics[width=0.2\textwidth]{Vis_3/ranking.png}
+    \caption{Ranking according to selected region.}
+    \label{fig:temporal}
+\end{figure}
+
+Finally, the "Region Focus" selector acts as a global filter. By narrowing the scope to a specific continent (e.g., \textit{Africa}), the system zooms the maps, filters the scatter plot to reduce overplotting, and updates the ranking list. This interaction allows users to shift from a global perspective to a local analysis, revealing correlations that might be masked in the dense global dataset.
+
+\begin{figure}[H]
+    \centering
+    \includegraphics[width=0.6\textwidth]{Vis_3/africa_example.png}
+    \caption{Data reduction through regional filtering: Focusing on Africa to eliminate global overplotting and reveal local correlation patterns.}    \label{fig:temporal}
+\end{figure}
+
+\subsection{Algorithmic Implementation}
+
+The technical implementation of the dashboard leverages the Plotly library for high-performance reactive visualizations. The system is architected around a centralized state management model to ensure consistency across all coordinated views.
+
+\subsubsection*{Synchronized Geospatial Proxy}
+One of the primary technical challenges was the bi-directional synchronization of the two choropleth maps. To avoid infinite reactive loops where Map A updates Map B, which in turn tries to update Map A, we implemented a \textbf{Plotly Proxy} combined with a mutual exclusion flag (\textit{syncing state}).
+\begin{itemize}
+    \item When a user zooms or pans on a map, the \texttt{plotly\_relayout} event captures the new coordinate bounds (longitude, latitude, and projection scale).
+    \item A reactive observer filters these events and stores the new state in a \texttt{reactiveValues} object.
+    \item The update is then pushed to the twin map using the \texttt{plotlyProxyInvoke} method, which allows for smooth visual updates without re-rendering the entire graphical object, significantly improving the frame rate.
+\end{itemize}
+
+\subsubsection*{Hierarchical Filtering}
+To support local analysis, the system implements a hierarchical filtering algorithm. Based on the user's "Region Focus" selection, the system performs a lookup against a custom reference table (\textit{world\_ref}) derived from the \texttt{rnaturalearth} package. This mapping translates continental categories into specific lists of ISO-3 country codes. These codes are then used to prune the global dataset before it reaches the rendering functions of the scatter plot and ranking lists. This "pre-filtering" step reduces the number of SVG elements rendered in the browser, ensuring that even with dense datasets, the correlation analysis remains responsive to user interactions.
+
+\subsubsection*{Coordinated Interaction Logic}
+The linking between views is managed through a global \texttt{selection\$code} reactive variable. When a country is clicked on a map, the system triggers a cascade of updates:
+\begin{enumerate}
+    \item The \textbf{Time Series} chart executes a specific query to the full historical dataset to render the longitudinal trend.
+    \item The \textbf{Scatter Plot} re-calculates the size and opacity channels for all points, highlighting the selected item using a conditional logic (\texttt{ifelse(is\_selected, 15, 8)}).
+    \item The \textbf{Hover Details} bar chart utilizes a dedicated observer that monitors the mouse position (\texttt{plotly\_hover}) to provide real-time, low-latency numerical feedback in the sidebar.
+\end{enumerate}
+
+\subsection{Results}
+
+\section{Which countries show outlier behavior in Internet access or GDP per capita relative to their regional or income group, and how can these deviations be characterized?}
+
+\subsection{Problem characterization}
+
+\subsection{Data and task abstraction}
+
+\subsection{Interaction and visual encoding}
+
+\subsection{Algorithmic implementation}
+
+\subsection{Results}
+
+\section{How is the global connected population distributed among regions and countries, reflecting the hierarchical structure?}
+
+\subsection{Problem characterization}
+
+\subsection{Data and task abstraction}
+
+\subsection{Interaction and visual encoding}
+
+\subsection{Algorithmic implementation}
+
+\subsection{Results}
+
+\section{Instructions to run the app}
+
+\end{document}

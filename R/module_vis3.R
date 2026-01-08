@@ -62,7 +62,7 @@ vis3_ui <- function(id) {
              
              # Bottom Row: Analysis Charts
              fluidRow(
-               box(title = "Evolution Over Time", status = "info", solidHeader = TRUE, width = 6,
+               box(title = "Evolution Over Time", status = "primary", solidHeader = TRUE, width = 6,
                    checkboxGroupInput(
                      ns("avg_overlay"),
                      "Overlay:",
@@ -72,7 +72,7 @@ vis3_ui <- function(id) {
                    ),
                    plotlyOutput(ns("mini_time_series"), height = "300px")),
                
-               box(title = "Correlation Analysis", status = "success", solidHeader = TRUE, width = 6,
+               box(title = "Correlation Analysis", status = "primary", solidHeader = TRUE, width = 6,
                    plotlyOutput(ns("correlation_scatter"), height = "360px"))
              )
       )
@@ -252,8 +252,8 @@ vis3_server <- function(id, data_internet, data_literacy) {
       
       plot_geo(df, source = ns("map_internet")) %>%
         add_trace(z = ~Internet_val, locations = ~`Country Code`, key = ~`Country Code`,
-                  colors = "Blues", zmin = 0, zmax = 100, text = get_tooltip(df), hoverinfo = "text",
-                  marker = list(line = list(color = '#2980b9', width = 0.8)),
+                  colors = "Purples", zmin = 0, zmax = 100, text = get_tooltip(df), hoverinfo = "text",
+                  marker = list(line = list(color = '#54278f', width = 0.8)),
                   colorbar = list(title = "Internet (%)", tickvals = cb_ticks_vals, ticktext = cb_ticks_text, len = 0.9)) %>%
         layout(geo = geo_cfg, uirevision = input$region_focus, margin = list(l = 0, r = 0, b = 0, t = 0)) %>%
         event_register("plotly_relayout") %>% event_register("plotly_click") %>%
@@ -267,8 +267,8 @@ vis3_server <- function(id, data_internet, data_literacy) {
       
       plot_geo(df, source = ns("map_literacy")) %>%
         add_trace(z = ~Literacy_val, locations = ~`Country Code`, key = ~`Country Code`,
-                  colors = "Reds", zmin = 0, zmax = 100, text = get_tooltip(df), hoverinfo = "text",
-                  marker = list(line = list(color = '#c0392b', width = 0.8)),
+                  colors = "Greens", zmin = 0, zmax = 100, text = get_tooltip(df), hoverinfo = "text",
+                  marker = list(line = list(color = '#006d2c', width = 0.8)),
                   colorbar = list(title = "Literacy (%)", tickvals = cb_ticks_vals, ticktext = cb_ticks_text, len = 0.9)) %>%
         layout(geo = geo_cfg, uirevision = input$region_focus, margin = list(l = 0, r = 0, b = 0, t = 0)) %>%
         event_register("plotly_relayout") %>% event_register("plotly_click") %>%
@@ -295,13 +295,10 @@ vis3_server <- function(id, data_internet, data_literacy) {
       
       if (nrow(bars) == 0) return(plot_ly() %>% layout(annotations = list(list(text = "No data available", x = 0.5, y = 0.5, showarrow = FALSE, xref = "paper", yref = "paper"))))
       
-      plot_ly(bars, x = ~value, y = ~metric, type = "bar", orientation = "h", marker = list(color = "#F1C40F")) %>%
+      plot_ly(bars, x = ~value, y = ~metric, type = "bar", orientation = "h", marker = list(color = "gray")) %>%
         layout(title = row$`Country Name`[1], xaxis = list(range = c(0, 100), title = "%"), yaxis = list(title = ""), margin = list(l = 110, r = 30, t = 45, b = 30))
       
       })
-    
-    
-    
     
     # Time Series Chart (Optimized)
     output$mini_time_series <- renderPlotly({
@@ -328,36 +325,44 @@ vis3_server <- function(id, data_internet, data_literacy) {
       
       p <- plot_ly() %>%
         add_trace(data = combined_hist, x = ~Year_num, y = ~Internet, name = "Internet Access (Country)",
-                  type = "scatter", mode = "lines+markers", line = list(color = "#2980b9", width = 3), marker = list(color = "#2980b9", size = 8),
+                  type = "scatter", mode = "lines+markers", line = list(color = "#54278f", width = 3), marker = list(color = "#54278f", size = 8),
                   hovertemplate = "%{y:.1f}%", connectgaps = TRUE) %>%
         add_trace(data = combined_hist, x = ~Year_num, y = ~Literacy, name = "Literacy Rate (Country)",
-                  type = "scatter", mode = "lines+markers", line = list(color = "#c0392b", width = 3), marker = list(color = "#c0392b", size = 8),
+                  type = "scatter", mode = "lines+markers", line = list(color = "#006d2c", width = 3), marker = list(color = "#006d2c", size = 8),
                   hovertemplate = "%{y:.1f}%", connectgaps = TRUE)
       
       if (show_world) {
         world_avg <- avg_series(NULL) %>% mutate(Year_num = as.numeric(Year)) %>% filter(Year_num %in% years_keep)
         p <- p %>%
-          add_trace(data = world_avg, x = ~Year_num, y = ~Internet_avg, name = "Internet (World Avg)", type = "scatter", mode = "lines",
-                    line = list(color = "gray50", width = 2, dash = "dot"), hovertemplate = "%{y:.1f}%") %>%
-          add_trace(data = world_avg, x = ~Year_num, y = ~Literacy_avg, name = "Literacy (World Avg)", type = "scatter", mode = "lines",
-                    line = list(color = "gray50", width = 2, dash = "dot"), hovertemplate = "%{y:.1f}%")
+          add_trace(data = world_avg, x = ~Year_num, y = ~Internet_avg, name = "Internet (World Avg)", 
+                    type = "scatter", mode = "lines",
+                    line = list(color = "rgba(84, 39, 143, 0.4)", width = 2, dash = "dot"),
+                    hovertemplate = "%{y:.1f}%") %>%
+          add_trace(data = world_avg, x = ~Year_num, y = ~Literacy_avg, name = "Literacy (World Avg)", 
+                    type = "scatter", mode = "lines",
+                    line = list(color = "rgba(0, 109, 44, 0.4)", width = 2, dash = "dot"),
+                    hovertemplate = "%{y:.1f}%")
       }
       
       if (show_region) {
         region_iso3 <- get_country_region_iso3(selection$code)
         region_avg <- avg_series(region_iso3) %>% mutate(Year_num = as.numeric(Year)) %>% filter(Year_num %in% years_keep)
         p <- p %>%
-          add_trace(data = region_avg, x = ~Year_num, y = ~Internet_avg, name = "Internet (Region Avg)", type = "scatter", mode = "lines",
-                    line = list(color = "gray60", width = 2, dash = "dash"), hovertemplate = "%{y:.1f}%") %>%
-          add_trace(data = region_avg, x = ~Year_num, y = ~Literacy_avg, name = "Literacy (Region Avg)", type = "scatter", mode = "lines",
-                    line = list(color = "gray60", width = 2, dash = "dash"), hovertemplate = "%{y:.1f}%")
+          add_trace(data = region_avg, x = ~Year_num, y = ~Internet_avg, name = "Internet (Region Avg)", 
+                    type = "scatter", mode = "lines",
+                    line = list(color = "rgba(84, 39, 143, 0.6)", width = 2, dash = "dash"),
+                    hovertemplate = "%{y:.1f}%") %>%
+          add_trace(data = region_avg, x = ~Year_num, y = ~Literacy_avg, name = "Literacy (Region Avg)", 
+                    type = "scatter", mode = "lines",
+                    line = list(color = "rgba(0, 109, 44, 0.6)", width = 2, dash = "dash"),
+                    hovertemplate = "%{y:.1f}%")
       }
       
       p %>% layout(
         title = paste0("Trends: ", combined_hist$`Country Name`[1]), hovermode = "x unified",
         hoverlabel = list(namelength = -1, align = "center"),
         yaxis = list(range = c(0, 105), title = "%"), xaxis = list(title = "Year", tickformat = "d"),
-        shapes = list(list(type = "line", x0 = sel_year, x1 = sel_year, y0 = 0, y1 = 1, yref = "paper", line = list(color = "gold", width = 2))),
+        shapes = list(list(type = "line", x0 = sel_year, x1 = sel_year, y0 = 0, y1 = 1, yref = "paper", line = list(color = "red", width = 1))),
         legend = list(orientation = "h", x = 0.5, xanchor = "center", y = -0.35), margin = list(b = 110)
       )
     })
