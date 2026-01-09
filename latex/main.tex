@@ -6,6 +6,7 @@
 \usepackage[english]{babel}      % Langue anglaise (césure correcte)
 \usepackage{graphicx}            % Pour les images
 \usepackage{float}               % Pour forcer le positionnement des images (H)
+\usepackage{subcaption}
 
 % --- MISE EN PAGE & MARGES ---
 \usepackage[margin=2.5cm]{geometry} % Marges standards de 2.5cm
@@ -70,7 +71,7 @@
         Stefano Longo\\
         Melen Laclais\\[0.4cm]
         \texttt{carlos.manzano@alumnos.upm.es}\\
-        \texttt{guillermo.bermejo@alumnos.upm.es}\\
+        \texttt{g.bbabiano@alumnos.upm.es}\\
         \texttt{stefano.longo@alumnos.upm.es}\\
         \texttt{melen.laclais@alumnos.upm.es}\\
     \end{flushleft}
@@ -95,10 +96,13 @@
 
 \section{Introduction}
 
+\newpage
 \section{Dataset}
 
+\newpage
 \section{Design abstraction}
 
+\newpage
 \section{How has global Internet access evolved over time?}
 
 \subsection{Problem characterization}
@@ -111,18 +115,226 @@
 
 \subsection{Results}
 
-\section{What are the potential correlations and dependencies between Internet access, GDP per capita, and other socioeconomic indicators?}
+\newpage
+\section{What are the potential correlations and dependencies between Internet access, GDP per capita, and other socioeconomic indicators?} \label{GDP_Internet}
 
 \subsection{Problem characterization}
 
+The rapid expansion of the digital economy has made Internet connectivity a critical determinant of modern economic development. However, the relationship between connectivity and socioeconomic progress is rarely linear or uniform across different global regions. To understand the "Digital Divide," it is insufficient to look at Internet penetration in isolation; it must be contextualized against economic output and social indicators.
+
+The domain-specific challenge addressed in this section is the complexity of analyzing multi-variate relationships that evolve over time. Policy analysts and development economists often face the following obstacles when working with raw World Bank data:
+
+\begin{itemize}
+    \item \textbf{Multidimensionality:} Users need to simultaneously assess the interplay between a country's wealth (GDP per Capita), its social structure (e.g., Female Employment), and its technological adoption (Internet Usage), while also considering population size and geographic region.
+    \item \textbf{Temporal Evolution:} A static snapshot of a single year fails to capture the \textit{trajectory} of development. It is crucial to identify whether economic growth precedes internet adoption or vice versa, and how these trends have shifted from 2000 to 2020.
+    \item \textbf{Hypothesis Generation:} As outlined in the project objectives, the path to a solution is not predetermined. Users do not always know the exact questions to ask in advance. Therefore, the goal is not merely to present a summary statistic, but to support \textit{exploratory analysis} that allows users to discover potential correlations, clusters, and outliers dynamically.
+\end{itemize}
+
+Consequently, the design problem is characterized by the need to augment the user's ability to perceive correlations and dependencies among these continuous variables without being overwhelmed by the volume of longitudinal data. The system must facilitate the transition from a general global overview to specific country-level insights, supporting the cognitive task of linking economic indicators to digital adoption rates.
+
+% Skeleton for an optional conceptual image (e.g., a diagram showing the relationship between the variables or the hypothesis workflow)
+% \begin{figure}[H]
+%     \centering
+%     \includegraphics[width=0.8\textwidth]{path/to/your/conceptual_diagram.png}
+%     \caption{Conceptual model of the dependencies between Socioeconomic factors and Internet connectivity.}
+%     \label{fig:q2_problem_char}
+% \end{figure}
+
 \subsection{Data and task abstraction}
+
+To translate the domain characterization into actionable design requirements, we analyze the dataset structure and abstract the user's goals into generic visualization tasks.
+
+\subsubsection*{Data Abstraction}
+The underlying dataset is a table of quantitative and categorical indicators derived from the World Bank, structured as follows:
+
+\begin{itemize}
+    \item \textbf{Items:} The primary items are countries, observed annually.
+    \item \textbf{Attributes:}
+    \begin{itemize}
+        \item \textbf{Categorical:} \textit{Country Name} and \textit{Region} serve as identity channels and grouping factors.
+        \item \textbf{Quantitative (Sequential):} \textit{Internet Usage (\%)} and \textit{Female Employment (\%)} are ratio variables bounded between 0 and 100.
+        \item \textbf{Quantitative (Diverging/Sequential):} \textit{GDP per Capita} is a ratio variable with a high dynamic range, necessitating a derived attribute \textit{Log\_GDP} to handle skewness. \textit{Population} is used to weight the visual elements.
+        \item \textbf{Ordinal:} \textit{Year} (2000–2020) orders the data chronologically, allowing for temporal analysis.
+    \end{itemize}
+\end{itemize}
+
+\subsubsection*{Task Abstraction}
+Following the design framework, the user's interaction with the system is mapped to the "Why, What, and How" structure:
+
+\begin{description}
+    \item[Why (Goal): Discover and Hypothesize.] \hfill \\
+    The primary goal is \textbf{exploratory analysis}. The user does not start with a specific lookup query but intends to \textit{discover} new patterns. The visualization must support the generation of hypotheses regarding the causality or correlation between economic power (GDP) and digital adoption.
+    
+    \item[What (Target): Trends, Correlations, and Outliers.] \hfill \\
+    The user seeks to identify:
+    \begin{itemize}
+        \item \textit{Correlations:} Is there a linear or logarithmic relationship between wealth and connectivity?
+        \item \textit{Trends:} How has the position of specific regions shifted over the 20-year period?
+        \item \textit{Outliers:} Which countries deviate significantly from their regional trend (e.g., high GDP but low Internet access)?
+    \end{itemize}
+    
+    \item[How (Method): Filter, Select, and Encode.] \hfill \\
+    To support these targets, the system requires:
+    \begin{itemize}
+        \item \textit{Filtering:} Reducing the complexity by viewing one \textit{Year} at a time to avoid occlusion.
+        \item \textit{Selection:} Allowing the user to dynamically \textit{change} the variable mapped to the Y-axis (GDP or Female Employment) to test different dependency models.
+        \item \textit{Encoding:} Mapping multidimensional data simultaneously—using position for the primary correlation, size for population context, and color for regional clustering.
+    \end{itemize}
+\end{description}
 
 \subsection{Interaction and visual encoding}
 
+To address the high dimensionality of the data while maintaining interpretability, we selected the \textbf{Bubble Scatterplot}. This idiom serves as a prime example of "layering" visual channels: it starts with a standard scatterplot to show correlation and adds size and color to encode two additional attributes without requiring a 3D representation.
+
+\subsubsection*{Visual Encoding: Marks and Channels}
+Following the "Building Blocks" framework, the visualization is constructed using \textbf{Points} (0D marks) to represent individual countries. The visual channels were mapped based on perceptual effectiveness:
+
+\begin{itemize}
+    \item \textbf{Position (X and Y Axes):} The two most critical quantitative attributes—\textit{Internet Usage} and the selected socioeconomic indicator (e.g., \textit{GDP per Capita})—are mapped to spatial position. 
+    \begin{itemize}
+        \item \textit{Justification:} Spatial position is the most accurate channel for the human perceptual system to estimate magnitude and correlation.
+    \end{itemize}
+    
+    \item \textbf{Size (Area):} The \textit{Population} of each country determines the area of the point. 
+    \begin{itemize}
+        \item \textit{Justification:} This adds necessary weight to the data, allowing the user to distinguish between trends driven by massive economies (e.g., China, India) versus smaller nations. We utilize area rather than radius to ensure the visual magnitude scales linearly with the data.
+    \end{itemize}
+    
+    \item \textbf{Color (Hue):} A categorical palette distinguishes the \textit{Region}. 
+    \begin{itemize}
+        \item \textit{Justification:} As noted in the design literature, hue is effective for nominal data (identity). We applied opacity (\texttt{alpha = 0.7}) to the marks to mitigate occlusion where countries cluster tightly (e.g., in the lower-left quadrant).
+    \end{itemize}
+\end{itemize}
+
+% Placeholder for the static view of the encoding
+\begin{figure}[H]
+    \centering
+     \includegraphics[width=0.6\textwidth]{Vis_2/corr_internet_access.png}
+    \caption{Visual Encoding strategy: Mapping Position, Size, and Color to distinct data attributes.}
+    \label{fig:q2_encoding}
+\end{figure}
+
+\subsubsection*{Interaction: Managing Complexity}
+The dataset covers a 20-year span for over 150 countries, presenting a challenge of high information density. Displaying this simultaneously (e.g., via "Small Multiples") would result in excessive visual clutter and cognitive overload. Instead, we adopted a combination of \textbf{"Manipulation"} and \textbf{"Reduction"} strategies to manage this complexity effectively:
+
+\begin{enumerate}
+    \item \textbf{Temporal Animation (The "Play" Button):} 
+    By automating the \textit{Year} selection, the visualization becomes a movie. This allows the user to perceive the "trajectory" of development—specifically, the global migration from low-income/low-connectivity to high-income/high-connectivity—without burdening working memory with static snapshots.
+    
+    \item \textbf{Attribute Reconfiguration (Y-Axis Selector):}
+    To address the multidimensional nature of the data without crowding the screen with extra axes, we implemented a dropdown control.
+    \begin{itemize}
+        \item \textit{Implementation:} This allows the user to dynamically swap the dependent variable (e.g., changing from \textit{GDP per Capita} to \textit{Female Employment}).
+        \item \textit{Justification:} This strategy enables the user to test different hypotheses (e.g., "Is Internet access more strongly correlated with wealth or gender equality?") while maintaining the same familiar visual metaphor.
+    \end{itemize}
+
+    \item \textbf{Categorical Filtering (Region Selector):}
+    Given the high number of overlapping points (occlusion), particularly in the lower quadrants of the chart, a "Reduction" strategy was necessary.
+    \begin{itemize}
+        \item \textit{Implementation:} A multi-select picker allows users to filter the dataset by \textit{Region}.
+        \item \textit{Justification:} This allows users to isolate specific geographic clusters (e.g., comparing only \textit{Europe} vs. \textit{Sub-Saharan Africa}), thereby reducing visual noise and making local patterns distinct.
+    \end{itemize}
+    
+    \item \textbf{Geometric Transformation (Logarithmic Scale):} 
+    The distribution of GDP per Capita follows a power law, causing meaningful differences between developing nations to be compressed into a small visual space. 
+    \begin{itemize}
+        \item \textit{Implementation:} A toggle switch transforms the Y-axis to a Logarithmic scale ($\log_{10}$). This spreads out the lower values, making the correlation visible across all income levels, not just wealthy nations.
+    \end{itemize}
+    
+    \item \textbf{Details-on-Demand:} 
+    While size and color are effective for overview, they lack precision. A hover interaction provides a tooltip with exact numerical values (Internet \%, exact GDP), bridging the gap between the "Overview" and specific "Details."
+\end{enumerate}
+
+% Interaction controls image
+\begin{figure}[H]
+    \centering
+     \includegraphics[width=0.4\textwidth]{Vis_2/image.png}
+    \caption{Interaction Controls: The sidebar enables "Reduction" via region filtering and "Manipulation" via variable selection and geometric transformation.}
+    \label{fig:q2_controls}
+\end{figure}
+
+
 \subsection{Algorithmic implementation}
 
+The visualization is implemented as an encapsulated R Shiny module (\texttt{vis2\_ui} and \texttt{vis2\_server}), ensuring modularity and preventing namespace collisions with other sections of the application. The rendering pipeline consists of three distinct stages: reactive data processing, aesthetic mapping, and interactive conversion.
+
+\subsubsection*{Reactive Data Processing}
+To ensure low-latency updates during the animation loop, data manipulation is handled within a \texttt{reactive(\{\})} context. The algorithm performs the following operations whenever user inputs change:
+
+\begin{enumerate}
+    \item \textbf{Input Listening:} The system monitors three input vectors: the temporal trigger (\texttt{year\_select}), the categorical filter (\texttt{region\_select}), and the variable selector (\texttt{y\_var}).
+    \item \textbf{Subset Operation:} The global World Bank dataset is filtered using \texttt{dplyr} logic. 
+    \begin{itemize}
+        \item \textit{Temporal:} \texttt{filter(Year == input\$year\_select)} reduces the dataset to a single time slice (~180 rows), significantly reducing the rendering overhead compared to processing the full longitudinal dataset.
+        \item \textit{Categorical:} A vector comparison filters countries based on the selected regions.
+    \end{itemize}
+    \item \textbf{Conditional Variable Selection:} A conditional control structure handles the geometric transformation logic. If the "Log Scale" switch is active (\texttt{input\$log\_scale == TRUE}) and the selected variable is GDP, the system dynamically swaps the mapping to the pre-calculated \texttt{Log\_GDP\_Per\_Capita} column to ensure correct axis scaling.
+\end{enumerate}
+
+\subsubsection*{Rendering Pipeline (ggplot2 + Plotly)}
+The visualization employs a hybrid rendering approach. The static graphical grammar is defined using \texttt{ggplot2} for its robust layering system, while the interactivity is injected via the \texttt{plotly} library.
+
+\begin{itemize}
+    \item \textbf{Aesthetic Mapping:} The \texttt{aes()} function maps the filtered data to the visual channels defined in Section 5.3:
+    \begin{verbatim}
+    aes(x = Internet_Perc, y = !!y_sym, size = Population, color = Region)
+    \end{verbatim}
+    Note the use of the bang-bang operator (\texttt{!!}) to programmatically evaluate the user-selected Y-variable symbol.
+    
+    \item \textbf{Custom Tooltip Generation:} To provide the "Details-on-Demand" identified in the task abstraction, the standard hover behavior is overridden. A custom HTML string is constructed within the aesthetic mapping using \texttt{paste()}. This string concatenates Country Name, Region, Year, and formatted numerical values, which is then passed to the \texttt{text} aesthetic.
+    
+    \item \textbf{Interactive Conversion:} The final object is rendered using \texttt{ggplotly(p, tooltip = "text")}. This wrapper translates the R graphical objects into a JavaScript-based D3.js chart, enabling client-side interactions such as zooming, panning, and hovering without requiring a round-trip to the server.
+\end{itemize}
 \subsection{Results}
 
+The interactive nature of the \textit{Dynamic Bubble Scatterplot} allowed for the validation of several hypotheses regarding the "Digital Divide." By manipulating the temporal and geometric controls, three distinct patterns emerged:
+
+\subsubsection*{1. The Economic Driver: Wealth as a Predictor of Connectivity}
+When mapping \textit{GDP per Capita} against \textit{Internet Usage}, a robust positive correlation is observed globally. 
+\begin{itemize}
+    \item \textbf{Linearity in Log-Scale:} While the relationship appears exponential on a linear scale, applying the logarithmic transformation reveals a strong linear dependency. This suggests that for every order of magnitude increase in wealth, there is a consistent proportional increase in digital adoption.
+    \item \textbf{Global Convergence:} The animation reveals that while the correlation remains strong, the "entry threshold" has lowered. In 2000, only wealthy nations had significant access; by 2020, even lower-middle-income nations show rapid acceleration in internet adoption, although the wealth gap remains distinct.
+\end{itemize}
+
+\begin{figure}[H]
+    \centering
+    % PLACEHOLDER: Insert image of GDP vs Internet (Log Scale) showing the linear trend
+    \includegraphics[width=0.8\textwidth]{Vis_2/gdp.png}
+    \caption{GDP per Capita (Log Scale) vs. Internet Usage (2020). A clear linear trend demonstrates that economic output is the primary predictor of connectivity.}
+    \label{fig:results_gdp}
+\end{figure}
+
+\subsubsection*{2. The Social Divergence: Female Employment Patterns}
+Unlike GDP, the correlation between \textit{Female Employment} and \textit{Internet Usage} is not universally linear; it is highly dependent on the \textit{Region}, a pattern revealed by using the Region Filter control.
+
+\begin{itemize}
+    \item \textbf{Europe, Central Asia, and MENA:} In these regions, a positive linear relationship is observable. As internet penetration increases, female participation in the workforce tends to rise, suggesting that digital economies may facilitate inclusive employment.
+    \item \textbf{Sub-Saharan Africa:} This region exhibits a distinct, sparse pattern. High variation in female employment exists regardless of internet connectivity. In many agrarian economies within this region, female employment is high (in agriculture) even with low internet access. Conversely, other nations show low participation despite growing connectivity. This non-linearity likely reflects complex structural, cultural, or religious constraints that cannot be overcome by digital infrastructure alone.
+\end{itemize}
+
+\begin{figure}[H]
+    \centering
+    % PLACEHOLDER: Insert image comparing Europe vs Sub-Saharan Africa patterns
+    \includegraphics[width=0.8\textwidth]{Vis_2/female.png}
+    \caption{Female Employment vs. Internet Usage. The linear trend visible in Europe (left/top points) contrasts sharply with the scattered distribution in Sub-Saharan Africa, highlighting regional socio-cultural differences.}
+    \label{fig:results_female}
+\end{figure}
+
+\subsubsection*{3. Temporal Velocity and "Leapfrogging"}
+The animation feature revealed a key temporal insight: the speed of adoption is increasing. 
+\begin{itemize}
+    \item \textbf{Trajectory:} Developing nations in Asia and Latin America are moving along the X-axis (Internet adoption) significantly faster than Western nations did during the early 2000s. This "leapfrogging" effect is visible as bubbles migrate rapidly to the right side of the chart within the last 5 years of the timeline.
+\end{itemize}
+
+\subsubsection*{Conclusion on Design Effectiveness}
+These insights confirm the effectiveness of the design choices tailored to the problem characterization. 
+\begin{itemize}
+    \item The \textbf{Log-Scale Toggle} was essential for identifying the linear economic correlation that was otherwise hidden by the power-law distribution of wealth.
+    \item The \textbf{Region Filter} (Reduction strategy) was critical in disaggregating the global data to reveal that Female Employment trends are regionally specific rather than universally applicable.
+    \item The \textbf{Animation} successfully transformed a static dataset into a narrative of development, allowing us to observe the acceleration of the digital economy over two decades.
+\end{itemize}
+
+\newpage
 \section{Global Comparison of Digital and Educational Access}
 
 \subsection{Problem Characterization}
@@ -367,18 +579,428 @@ The 2022 analysis reveals that global progress hasn't erased regional inequaliti
     \label{fig:regional_correlations_2022}
 \end{figure}
 
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\newpage
 \section{Which countries show outlier behavior in Internet access or GDP per capita relative to their regional or income group, and how can these deviations be characterized?}
 
-\subsection{Problem characterization}
+\subsection{Problem Characterization}
 
-\subsection{Data and task abstraction}
+As we saw in Section \ref{GDP_Internet}, there is generally a positive correlation between a nation's wealth (GDP per capita) and its technological maturity (Internet Access). Under normal circumstances, economic power is a reliable predictor of digital infrastructure. However, raw datasets often obscure the most analytically valuable cases: the anomalies. Policy researchers and development economists are frequently less interested in the general trend and more focused on identifying countries that "break the rules" of this correlation.
 
-\subsection{Interaction and visual encoding}
+The core problem this visualization addresses is the difficulty of detecting and characterizing these socioeconomic outliers within a dense global dataset. A standard static scatter plot or tabular report does not immediately reveal which nations are over-performing their economic constraints (high digital adoption despite low GDP) or under-performing relative to their potential. Furthermore, reliance on static political labels, such as the World Bank Income Groups, often masks the true digital reality of a nation. For instance, a "Lower Middle Income" country might exhibit the digital characteristics of a "High Income" nation, but this distinction is lost in traditional categorical filtering.
 
-\subsection{Algorithmic implementation}
+Therefore, the objective of this analysis is to provide a dynamic, algorithmic interface to automatically detect and classify these deviations. By integrating unsupervised learning (K-Means clustering) directly into the visual exploration, the tool aims to answer the following key questions:
 
+\begin{enumerate}
+    \item \textit{Which specific countries exhibit statistically significant outlier behavior where digital adoption does not align with economic wealth?}
+    \item \textit{Do data-driven clusters (based on actual performance) align with official World Bank Income Groups, or are there significant discrepancies?}
+    \item \textit{Can we identify "role model" nations that have managed to bridge the digital divide despite limited economic resources?}
+\end{enumerate}
+
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\subsection{Data and Task Abstraction}
+
+To support the algorithmic detection of anomalies, we translated the domain characterization into actionable design requirements. This analysis relies on a specific subset of the primary dataset, transformed through a strict processing pipeline to support unsupervised learning.
+
+\subsubsection{Data Abstraction}
+The dataset is structured as a multidimensional table where the primary **Items** are sovereign countries (identified by ISO-3 codes). The attributes are classified and transformed as follows:
+
+\textbf{1. Attributes and Types}
+\begin{itemize}
+    \item \textbf{Categorical (Identity \& Grouping):}
+    \begin{itemize}
+        \item \textit{Region:} Used for filtering and context.
+        \item \textit{World Bank Income Group:} Used as a "ground truth" label for comparison.
+        \item \textbf{Integration Note:} These are attached via metadata integration using the \texttt{countrycode} library. While \textit{Literacy Rate} was considered, it is excluded from the clustering vector space to avoid data loss due to sparsity.
+    \end{itemize}
+
+    \item \textbf{Quantitative (Sequential \& Transformed):}
+    \begin{itemize}
+        \item \textit{Internet Access (\%):} A ratio variable bounded between 0--100.
+        \item \textit{Log-GDP (Transformed):} The raw GDP variable spans several orders of magnitude (approx. \$200 to \$100,000+). To normalize this heavy right-skew, we compute the base-10 logarithm: $GDP' = \log_{10}(\max(GDP, 1))$. This transformation compresses the scale, ensuring that high-income differences do not dominate the variance.
+        \item \textit{Z-Score (Standardized):} Before clustering, both attributes are scaled to $\mu=0, \sigma=1$ ($z = \frac{x - \mu}{\sigma}$). This is critical to ensure both variables contribute equally to the Euclidean distance calculation.
+    \end{itemize}
+
+    \item \textbf{Ordinal (Derived):}
+    \begin{itemize}
+        \item \textit{Cluster ID:} We execute \textbf{Dynamic K-Means ($k=3$)}. To ensure semantic meaningfulness, the system calculates the "development score" of centroids to dynamically label clusters as \textit{"Low," "Medium,"} and \textit{"High Development,"} creating an ordinal ranking rather than nominal IDs.
+        \item \textit{Outlier Flag (Boolean):} Derived by comparing the Euclidean distance against a user-controlled percentile threshold ($p \in [90, 99]$).
+    \end{itemize}
+\end{itemize}
+
+\textbf{2. Processing Pipeline (Reduction Strategy)}
+Unlike time-series visualizations which allow for imputation, the clustering module requires complete data vectors.
+\begin{enumerate}
+    \item \textbf{Filtering and Joining:} For the selected year, the system performs an \texttt{inner\_join} between GDP and Internet datasets.
+    \item \textbf{Strict Filtering Policy:} Any country lacking a recorded value is explicitly removed (\texttt{drop\_na}). This reduction strategy ensures the K-Means algorithm is not biased by imputed or zero-filled values.
+\end{enumerate}
+
+\subsubsection{Task Abstraction}
+Following the visualization design framework, the user's interaction is mapped to the "Why, What, and How" structure:
+
+\textbf{Why (Goal): Discover and Compare}
+\begin{itemize}
+    \item \textbf{Discover (Outliers):} The primary goal is to \textit{locate} items that exceed the statistical distance threshold. Users search for "triangular" marks that indicate a breakdown in the standard wealth-connectivity correlation.
+    \item \textbf{Compare (Classifications):} Users \textit{compare} the algorithmic \textit{Data-Driven Cluster} against the official \textit{World Bank Income Group} to identify "mismatches" (e.g., a "Lower Middle Income" country appearing in the "High Development" cluster).
+\end{itemize}
+
+\textbf{What (Target): Topology and Features}
+\begin{itemize}
+    \item \textbf{Topology (Anomalies):} The target is not the global trend, but the specific geometric deviations defined by the Euclidean distance of a country's vector from its assigned cluster centroid.
+    \item \textbf{Features (Attributes):} The user seeks to identify which specific attribute (GDP or Internet) is driving the deviation.
+\end{itemize}
+
+\textbf{How (Method): Encode, Reduce, and Select}
+\begin{itemize}
+    \item \textbf{Encode:} We map the standardized attributes to position ($x, y$), cluster membership to color, and outlier status to shape (triangle vs. circle) to ensure pre-attentive processing.
+    \item \textbf{Reduce:} The system reduces complexity via the strict \texttt{drop\_na} pipeline described above.
+    \item \textbf{Select (Details-on-Demand):} Using the coordinated profile view, users select specific points to reveal the Z-scores. This allows characterization (e.g., "This country is an outlier because its Internet Z-score is +2.0 while its GDP Z-score is -0.5").
+\end{itemize}\subsection{Data and Task Abstraction}
+
+To support the algorithmic detection of anomalies, we translated the domain characterization into actionable design requirements. This analysis relies on a specific subset of the primary dataset, transformed through a strict processing pipeline to support unsupervised learning.
+
+\subsubsection{Data Abstraction}
+The dataset is structured as a multidimensional table where the primary **Items** are sovereign countries (identified by ISO-3 codes). The attributes are classified and transformed as follows:
+
+\textbf{1. Attributes and Types}
+\begin{itemize}
+    \item \textbf{Categorical (Identity \& Grouping):}
+    \begin{itemize}
+        \item \textit{Region:} Used for filtering and context.
+        \item \textit{World Bank Income Group:} Used as a "ground truth" label for comparison.
+        \item \textbf{Integration Note:} These are attached via metadata integration using the \texttt{countrycode} library. While \textit{Literacy Rate} was considered, it is excluded from the clustering vector space to avoid data loss due to sparsity.
+    \end{itemize}
+
+    \item \textbf{Quantitative (Sequential \& Transformed):}
+    \begin{itemize}
+        \item \textit{Internet Access (\%):} A ratio variable bounded between 0--100.
+        \item \textit{Log-GDP (Transformed):} The raw GDP variable spans several orders of magnitude (approx. \$200 to \$100,000+). To normalize this heavy right-skew, we compute the base-10 logarithm: $GDP' = \log_{10}(\max(GDP, 1))$. This transformation compresses the scale, ensuring that high-income differences do not dominate the variance.
+        \item \textit{Z-Score (Standardized):} Before clustering, both attributes are scaled to $\mu=0, \sigma=1$ ($z = \frac{x - \mu}{\sigma}$). This is critical to ensure both variables contribute equally to the Euclidean distance calculation.
+    \end{itemize}
+
+    \item \textbf{Ordinal (Derived):}
+    \begin{itemize}
+        \item \textit{Cluster ID:} We execute \textbf{Dynamic K-Means ($k=3$)}. To ensure semantic meaningfulness, the system calculates the "development score" of centroids to dynamically label clusters as \textit{"Low," "Medium,"} and \textit{"High Development,"} creating an ordinal ranking rather than nominal IDs.
+        \item \textit{Outlier Flag (Boolean):} Derived by comparing the Euclidean distance against a user-controlled percentile threshold ($p \in [90, 99]$).
+    \end{itemize}
+\end{itemize}
+
+\textbf{2. Processing Pipeline (Reduction Strategy)}
+Unlike time-series visualizations which allow for imputation, the clustering module requires complete data vectors.
+\begin{enumerate}
+    \item \textbf{Filtering and Joining:} For the selected year, the system performs an \texttt{inner\_join} between GDP and Internet datasets.
+    \item \textbf{Strict Filtering Policy:} Any country lacking a recorded value is explicitly removed (\texttt{drop\_na}). This reduction strategy ensures the K-Means algorithm is not biased by imputed or zero-filled values.
+\end{enumerate}
+
+\subsubsection{Task Abstraction}
+Following the visualization design framework, the user's interaction is mapped to the "Why, What, and How" structure:
+
+\textbf{Why (Goal): Discover and Compare}
+\begin{itemize}
+    \item \textbf{Discover (Outliers):} The primary goal is to \textit{locate} items that exceed the statistical distance threshold. Users search for "triangular" marks that indicate a breakdown in the standard wealth-connectivity correlation.
+    \item \textbf{Compare (Classifications):} Users \textit{compare} the algorithmic \textit{Data-Driven Cluster} against the official \textit{World Bank Income Group} to identify "mismatches" (e.g., a "Lower Middle Income" country appearing in the "High Development" cluster).
+\end{itemize}
+
+\textbf{What (Target): Topology and Features}
+\begin{itemize}
+    \item \textbf{Topology (Anomalies):} The target is not the global trend, but the specific geometric deviations defined by the Euclidean distance of a country's vector from its assigned cluster centroid.
+    \item \textbf{Features (Attributes):} The user seeks to identify which specific attribute (GDP or Internet) is driving the deviation.
+\end{itemize}
+
+\textbf{How (Method): Encode, Reduce, and Select}
+\begin{itemize}
+    \item \textbf{Encode:} We map the standardized attributes to position ($x, y$), cluster membership to color, and outlier status to shape (triangle vs. circle) to ensure pre-attentive processing.
+    \item \textbf{Reduce:} The system reduces complexity via the strict \texttt{drop\_na} pipeline described above.
+    \item \textbf{Select (Details-on-Demand):} Using the coordinated profile view, users select specific points to reveal the Z-scores. This allows characterization (e.g., "This country is an outlier because its Internet Z-score is +2.0 while its GDP Z-score is -0.5").
+\end{itemize}
+
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\subsection{Interaction and Visual Encoding}
+
+To support the detection and characterization of outliers, we designed a composite view consisting of four coordinated components: a central scatter plot, a parametric control panel, a semantic legend, and a details-on-demand profile view. As shown in the global overview (Figure \ref{fig:global_overview}), we adopted a sidebar layout for the controls to ensure the analytical workspace (the scatter plot) remains the primary focal point without requiring scrolling.
+
+\begin{figure}[h]
+    \centering
+    \includegraphics[width=1.0\textwidth]{Vis_4/global_view.png}
+    \caption{Global Overview of the Outlier Detection Module. The layout is divided into two distinct zones: the Control Panel (left) for parametric adjustments and the Main View (right) for visual analysis. The sidebar also houses the "Details-on-Demand" profile chart, ensuring it does not obscure the data during hover interactions.}
+    \label{fig:global_overview}
+\end{figure}
+
+\subsubsection{The Dynamic Clustering Scatter Plot}
+The central visual component is the scatter plot, which maps the derived attributes to specific visual channels to maximize the discriminability of outliers.
+
+\begin{itemize}
+    \item \textbf{Position:} The X-axis represents \textit{GDP per capita}. By default, this is rendered on a logarithmic scale ($\log_{10}$) to compress the long tail of high-income nations and reveal the structure of developing economies. The Y-axis represents \textit{Internet Access} linearly.
+    \item \textbf{Color (Cluster Membership):} We utilize a qualitative color palette to encode the \textit{Cluster ID} assigned by the K-Means algorithm. As shown in Figure \ref{fig:scatter_main}, distinct hues distinguish the three development tiers (Green for High, Purple for Medium, Orange for Low).
+    \item \textbf{Shape (Outlier Status):} To ensure pre-attentive processing, we utilized a dual-channel encoding for the outlier status. "Normal" countries are rendered as circles. \textbf{Outliers}---defined as those exceeding the distance threshold---are rendered as upward-pointing triangles. This distinct shape allows the user to scan the plot and instantly spot "triangular" deviations among "circular" clusters.
+\end{itemize}
+
+\begin{figure}[h]
+    \centering
+    \includegraphics[width=0.95\textwidth]{Vis_4/scatterplot.png}
+    \caption{The K-Means Clustering Scatter Plot (Year 2018). The visualization clearly distinguishes between core cluster members (circles) and statistical outliers (triangles) that drift far from their group's centroid.}
+    \label{fig:scatter_main}
+\end{figure}
+
+\subsubsection{Parametric Controls and Sensitivity Analysis}
+Unlike static visualizations, this dashboard allows the user to manipulate the underlying algorithm in real-time via the sidebar controls (Figure \ref{fig:filtering}).
+
+\begin{itemize}
+    \item \textbf{Temporal Slider (2000--2020):} Moving this slider triggers a reactive re-calculation of the K-Means model for the specific year, allowing users to watch outliers emerge over time.
+    \item \textbf{Outlier Percentile (Sensitivity):} This slider controls the "strictness" of the anomaly detection. It adjusts the percentile threshold ($90^{th}$ to $99^{th}$) of the distance metric. Lowering this value to 90 reveals more "marginal" outliers, while raising it to 99 isolates only the most extreme cases.
+\end{itemize}
+
+\begin{figure}[H]
+    \centering
+    \includegraphics[width=0.6\textwidth]{Vis_4/filtering.png}
+    \caption{Parametric Controls. The user can adjust the temporal scope and the mathematical definition of an "outlier" (percentile threshold) dynamically.}
+    \label{fig:filtering}
+\end{figure}
+
+\subsubsection{Semantics and Grouping}
+To aid interpretation, the legend (Figure \ref{fig:legend}) explicitly maps the combination of Color and Shape. It reinforces that the categorization is hierarchical: a country belongs to a Development Group (Color) and is simultaneously classified as either a Core Member (Circle) or an Outlier (Triangle).
+
+\begin{figure}[H]
+    \centering
+    \includegraphics[width=0.3\textwidth]{Vis_4/legend.png}
+    \caption{Semantic Legend. Explaining the dual encoding of Development Level (Color) and Anomaly Status (Shape).}
+    \label{fig:legend}
+\end{figure}
+
+\subsubsection{Coordinated Details-on-Demand}
+Once an outlier is identified (e.g., a triangle in the Medium Development cluster), the user needs to understand \textit{why} it deviates. We implemented a coordinated interaction model:
+
+\begin{itemize}
+    \item \textbf{Tooltip (Identification):} Hovering over a point reveals the exact metadata, including the World Bank classification and the raw Euclidean distance to the centroid (Figure \ref{fig:tooltip}).
+    \item \textbf{Z-Score Profile (Characterization):} Simultaneously, the sidebar updates to show a "Country Profile" bar chart (Figure \ref{fig:barchart}). This visualizes the \textbf{Standardized Z-Scores} for both indicators. This is critical for analysis: it allows the user to see if a country is an outlier because of disproportionately high Internet access (positive blue bar) or disproportionately low GDP (negative red bar).
+\end{itemize}
+
+\begin{figure}[H]
+    \centering
+    \begin{subfigure}[b]{0.45\textwidth}
+        \centering
+        \includegraphics[width=\textwidth]{Vis_4/label.png}
+        \caption{Tooltip with raw metrics.}
+        \label{fig:tooltip}
+    \end{subfigure}
+    \hfill
+    \begin{subfigure}[b]{0.45\textwidth}
+        \centering
+        \includegraphics[width=\textwidth]{Vis_4/barchart.png}
+        \caption{Z-Score Profile.}
+        \label{fig:barchart}
+    \end{subfigure}
+    \caption{Coordinated Views for Details-on-Demand.  over a country triggers both a metadata tooltip and a statistical profile chart to explain the deviation.}
+    \label{fig:details}
+\end{figure}
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\subsection{Algorithmic Implementation}
+
+The technical implementation of the outlier detection module utilizes the R Shiny framework, leveraging the \texttt{stats} package for unsupervised learning and \texttt{plotly} for client-side rendering. The system is architected around a sequential reactive pipeline that ensures the clustering model is recalculated only when specific upstream parameters (Year, Outlier Threshold) are modified.
+
+\textbf{Sequential Reactive Pipeline}
+To maintain performance while handling computationally intensive tasks, we separated the data processing into two distinct reactive stages:
+
+\begin{enumerate}
+    \item \textbf{Data Preparation (\texttt{data\_year}):} This reactive block handles the "Extract-Transform-Load" (ETL) process. It filters the global dataset by the selected year input and performs the inner joins between GDP and Internet tables. Crucially, it applies the log-transformation ($\log_{10}$) at this stage, creating the \texttt{gdp\_log} variable used by downstream processes.
+    \item \textbf{Model Execution (\texttt{clustered}):} This dependent reactive block executes the K-Means algorithm. By isolating this step, the system avoids re-fetching data when the user only changes clustering parameters (like the percentile threshold).
+\end{enumerate}
+
+\textbf{Unsupervised Learning and Distance Calculation}
+The core logic resides in the \texttt{clustered} reactive function. To ensure valid Euclidean distance calculations, the algorithm performs the following operations:
+
+\begin{itemize}
+    \item \textbf{Standardization:} We utilize the \texttt{scale()} function to normalize the input matrix $X$ (Internet, Log-GDP). This centers the data at 0 with a standard deviation of 1.
+    \item \textbf{K-Means Execution:} We execute \texttt{kmeans(X, centers=3, nstart=50)}. The \texttt{nstart=50} parameter is critical; it runs the algorithm 50 times with random initializations and selects the result with the lowest within-cluster sum of squares, ensuring a globally optimal solution.
+    \item \textbf{Semantic Labeling:} A raw K-Means output assigns arbitrary IDs (1, 2, 3). To map these to meaningful labels ("High", "Medium", "Low"), the algorithm calculates a "Development Score" for each cluster centroid (mean of GDP and Internet). The clusters are then sorted by this score, ensuring that the highest-performing group is consistently labeled "High Development" regardless of the random seed.
+    \item \textbf{Anomaly Scoring:} The outlier metric is computed vectorially in R. We calculate the squared Euclidean distance between each observation $x_i$ and its assigned centroid $c_k$:
+    \begin{equation}
+        d(x_i, c_k) = \sqrt{\sum_{j=1}^{m} (x_{ij} - c_{kj})^2}
+    \end{equation}
+    In the code, this is implemented as: \texttt{sqrt(rowSums((X - centers)\^{}2))}.
+\end{itemize}
+
+\textbf{Event-Driven Coordination}
+The synchronization between the scatter plot and the profile chart is managed via the \texttt{event\_data()} observer in Plotly.
+\begin{itemize}
+    \item We attach the country name to the \texttt{customdata} slot of the scatter plot markers.
+    \item When a \texttt{plotly\_hover} event is detected, the observer captures this ID.
+    \item This triggers a separate rendering function for the bar chart, which pivots the selected country's data into a long format (\texttt{pivot\_longer}) to generate the Z-score visualization using \texttt{ggplot2}.
+\end{itemize}
+
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 \subsection{Results}
 
+By applying the dynamic K-Means clustering ($k=3$) across the timeline (2014--2018), the visualization revealed distinct patterns of global digital inequality. We identified two major eras of divergence: the "Resource Curse" era of 2014 and the "Digital Decoupling" era of 2018.
+
+\subsubsection{The 2014 Analysis: Divergence and Inequality}
+The 2014 snapshot (Figure \ref{fig:2014_general}) highlights the extreme volatility within the "Medium Development" cluster (purple). While the economic indicators (GDP) for these nations are similar, their digital outcomes vary drastically.
+
+\begin{figure}[h]
+    \centering
+    \includegraphics[width=1.0\textwidth]{Vis_4/Results/2014_General.png}
+    \caption{The 2014 Global Landscape. Note the massive vertical dispersion in the Purple (Medium Development) cluster, ranging from near 80\% internet access to less than 20\%.}
+    \label{fig:2014_general}
+\end{figure}
+
+\textbf{1. The Resource Curse: Azerbaijan vs. Equatorial Guinea}
+The most striking finding is the contrast between two oil-rich nations. As shown in Figure \ref{fig:2014_divergence}, both belong to the same economic tier, yet their digital realities are opposites.
+\begin{itemize}
+    \item \textbf{Azerbaijan (The Leapfrogger):} With a Z-score for Internet of nearly +1.0, it performs like a "High Development" nation.
+    \item \textbf{Equatorial Guinea (The Laggard):} Despite being classified as "Upper Middle Income," its Internet Z-score is deeply negative, illustrating that wealth without policy does not create connectivity.
+\end{itemize}
+
+\begin{figure}[h]
+    \centering
+    % Row 1: Azerbaijan
+    \begin{subfigure}[b]{0.45\textwidth}
+        \centering
+        \includegraphics[width=\textwidth]{Vis_4/Results/Azerbaijan_label.png}
+        \caption{Azerbaijan Tooltip}
+    \end{subfigure}
+    \hfill
+    \begin{subfigure}[b]{0.45\textwidth}
+        \centering
+        \includegraphics[width=\textwidth]{Vis_4/Results/Azerbaijan_bar.png}
+        \caption{Azerbaijan Z-Scores}
+    \end{subfigure}
+    
+    \vspace{1em} % Space between rows
+    
+    % Row 2: Equatorial Guinea
+    \begin{subfigure}[b]{0.45\textwidth}
+        \centering
+        \includegraphics[width=\textwidth]{Vis_4/Results/Equatorial_label.png}
+        \caption{Eq. Guinea Tooltip}
+    \end{subfigure}
+    \hfill
+    \begin{subfigure}[b]{0.45\textwidth}
+        \centering
+        \includegraphics[width=\textwidth]{Vis_4/Results/Equatorial_bar.png}
+        \caption{Eq. Guinea Z-Scores}
+    \end{subfigure}
+    
+    \caption{The Medium-Development Split (2014). Comparing the "Leapfrogger" (Azerbaijan, Top) with the "Laggard" (Equatorial Guinea, Bottom).}
+    \label{fig:2014_divergence}
+\end{figure}
+
+\textbf{2. Regional Outliers: Lebanon and the Virgin Islands}
+We also identified outliers that defy their regional or income group trends (Figure \ref{fig:2014_outliers}).
+\begin{itemize}
+    \item \textbf{Lebanon:} Like Azerbaijan, it punches above its weight, showing a positive Internet deviation despite average GDP.
+    \item \textbf{Virgin Islands (U.S.):} A rare "High Income" failure. Despite being in the Green cluster, its internet access lags significantly, likely due to island infrastructure challenges.
+\end{itemize}
+
+\begin{figure}[h]
+    \centering
+    % Row 1: Lebanon
+    \begin{subfigure}[b]{0.45\textwidth}
+        \centering
+        \includegraphics[width=\textwidth]{Vis_4/Results/Lebanon_label.png}
+        \caption{Lebanon: Over-Performer}
+    \end{subfigure}
+    \hfill
+    \begin{subfigure}[b]{0.45\textwidth}
+        \centering
+        \includegraphics[width=\textwidth]{Vis_4/Results/Lebanon_bar.png}
+        \caption{Positive Internet Z-Score}
+    \end{subfigure}
+    
+    \vspace{1em}
+    
+    % Row 2: Virgin Islands
+    \begin{subfigure}[b]{0.45\textwidth}
+        \centering
+        \includegraphics[width=\textwidth]{Vis_4/Results/Virgin_label.png}
+        \caption{Virgin Islands: Under-Performer}
+    \end{subfigure}
+    \hfill
+    \begin{subfigure}[b]{0.45\textwidth}
+        \centering
+        \includegraphics[width=\textwidth]{Vis_4/Results/Virgin_bar.png}
+        \caption{Negative Internet Z-Score (Green Cluster)}
+    \end{subfigure}
+    \caption{Regional Anomalies (2014).}
+    \label{fig:2014_outliers}
+\end{figure}
+
+\subsubsection{The 2018 Analysis: Maturation and Mismatches}
+By 2018 (Figure \ref{fig:2018_general}), the global trend tightens, but extreme outliers emerge that completely decouple digital growth from economic constraints.
+
+\begin{figure}[H]
+    \centering
+    \includegraphics[width=1.0\textwidth]{Vis_4/Results/2018_General.png}
+    \caption{The 2018 Global Landscape. Kosovo appears as the highest outlier in the purple cluster, nearing the ceiling of 100\% access.}
+    \label{fig:2018_general}
+\end{figure}
+
+\textbf{3. The Balkan Miracle: Kosovo}
+Kosovo represents the ultimate "Over-Performer" (Figure \ref{fig:2018_kosovo}). Its Z-score profile is the most unique in the dataset: a GDP Z-score that is negative (below average) paired with an Internet Z-score near +1.0 (exceptional). This proves that digital infrastructure can be fully decoupled from national wealth.
+
+\begin{figure}[h]
+    \centering
+    \begin{subfigure}[b]{0.45\textwidth}
+        \centering
+        \includegraphics[width=\textwidth]{Vis_4/Results/Kosovo_label.png}
+        \caption{Kosovo Tooltip}
+    \end{subfigure}
+    \hfill
+    \begin{subfigure}[b]{0.45\textwidth}
+        \centering
+        \includegraphics[width=\textwidth]{Vis_4/Results/Kosovo_bar.png}
+        \caption{The "Decoupled" Profile}
+    \end{subfigure}
+    \caption{Kosovo (2018): High connectivity despite low economic output.}
+    \label{fig:2018_kosovo}
+\end{figure}
+
+\textbf{4. Classification Mismatches and Scale}
+Finally, the tool exposed limitations in official labels (Figure \ref{fig:2018_mismatches}).
+\begin{itemize}
+    \item \textbf{Kyrgyz Republic:} The tooltip confirms it is officially "Lower Middle Income," but our algorithm upgrades it to "Medium Development" due to its high connectivity.
+    \item \textbf{Luxembourg:} Validates the Log-Scale design. It is an outlier not due to a mismatch, but purely due to the extreme magnitude of its GDP.
+\end{itemize}
+
+\begin{figure}[h]
+    \centering
+    % Row 1: Kyrgyz
+    \begin{subfigure}[b]{0.45\textwidth}
+        \centering
+        \includegraphics[width=\textwidth]{Vis_4/Results/Kyr_label.png}
+        \caption{Kyrgyz Rep: Label Mismatch}
+    \end{subfigure}
+    \hfill
+    \begin{subfigure}[b]{0.45\textwidth}
+        \centering
+        \includegraphics[width=\textwidth]{Vis_4/Results/Kyr_bar.png}
+        \caption{Kyrgyz Rep: Z-Scores}
+    \end{subfigure}
+    
+    \vspace{1em}
+    
+    % Row 2: Luxembourg
+    \begin{subfigure}[b]{0.45\textwidth}
+        \centering
+        \includegraphics[width=\textwidth]{Vis_4/Results/Lux_label.png}
+        \caption{Luxembourg: Scale Outlier}
+    \end{subfigure}
+    \hfill
+    \begin{subfigure}[b]{0.45\textwidth}
+        \centering
+        \includegraphics[width=\textwidth]{Vis_4/Results/Lux_bar.png}
+        \caption{Luxembourg: Extreme GDP}
+    \end{subfigure}
+    \caption{Structural Outliers (2018). Identifying mismatches in World Bank classifications and validating the logarithmic scale.}
+    \label{fig:2018_mismatches}
+\end{figure}
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\newpage
 \section{How is the global connected population distributed among regions and countries, reflecting the hierarchical structure?}
 
 \subsection{Problem characterization}
@@ -391,6 +1013,7 @@ The 2022 analysis reveals that global progress hasn't erased regional inequaliti
 
 \subsection{Results}
 
+\newpage
 \section{Instructions to run the app}
 
 \end{document}
