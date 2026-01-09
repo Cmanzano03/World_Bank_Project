@@ -168,7 +168,7 @@ Regarding the spatial overview, we juxtaposed the two choropleth maps side-by-si
     \centering
     \includegraphics[width=0.6\textwidth]{Vis_3/zoom_interaction.png}
     \caption{Synchronized zoomed view allowing for local comparison, with specific values revealed via tooltips.}
-    \label{fig:layout}
+    \label{fig:zoom}
 \end{figure}
 
 \subsubsection*{Visual Encoding and Color Strategy}
@@ -180,7 +180,7 @@ For the correlation scatter plot, we employed the \textbf{Viridis} color scale (
     \centering
     \includegraphics[width=0.4\textwidth]{Vis_3/correlation.png}
     \caption{Viridis color scale on the correlation scatter plot.}
-    \label{fig:layout}
+    \label{fig:correlation}
 \end{figure}
 
 
@@ -200,7 +200,7 @@ We also add a red time bar to the Time Series chart to remind users which year t
     \centering
     \includegraphics[width=0.4\textwidth]{Vis_3/temporal_interaction_time_serie.png}
     \caption{The time series chart shows the selected year with a vertical red line marker.}
-    \label{fig:temporal}
+    \label{fig:temporal_time_serie}
 \end{figure}
 
 \subsubsection*{Contextualization and Details-on-Demand}
@@ -210,7 +210,7 @@ The dashboard offers several layers of detail to support in-depth analysis. The 
     \centering
     \includegraphics[width=0.2\textwidth]{Vis_3/tooltip_evolution_over_time.png}
     \caption{Evolution over time tooltip.}
-    \label{fig:temporal}
+    \label{fig:tooltip}
 \end{figure}
 
 To support "details-on-demand," hovering over a country updates a specific "Hover Details" bar chart in the sidebar. For this chart, we opted for a neutral color palette to focus the user's attention purely on the proportional difference between the two metrics, unbiased by the thematic colors. Additionally, a dynamic "Top Ranking" list provides a textual summary of the top 5 performers in the active region, enabling users to rapidly identify top-performing nations within the selected region and verify if high internet adoption aligns with educational leadership.
@@ -219,14 +219,14 @@ To support "details-on-demand," hovering over a country updates a specific "Hove
     \centering
     \includegraphics[width=0.2\textwidth]{Vis_3/hover_details.png}
     \caption{Hover details for direct comparison.}
-    \label{fig:temporal}
+    \label{fig:hover}
 \end{figure}
 
 \begin{figure}[H]
     \centering
     \includegraphics[width=0.2\textwidth]{Vis_3/ranking.png}
     \caption{Ranking according to selected region.}
-    \label{fig:temporal}
+    \label{fig:ranking}
 \end{figure}
 
 Finally, the "Region Focus" selector acts as a global filter. By narrowing the scope to a specific continent (e.g., \textit{Africa}), the system zooms the maps, filters the scatter plot to reduce overplotting, and updates the ranking list. This interaction allows users to shift from a global perspective to a local analysis, revealing correlations that might be masked in the dense global dataset.
@@ -234,7 +234,7 @@ Finally, the "Region Focus" selector acts as a global filter. By narrowing the s
 \begin{figure}[H]
     \centering
     \includegraphics[width=0.6\textwidth]{Vis_3/africa_example.png}
-    \caption{Data reduction through regional filtering: Focusing on Africa to eliminate global overplotting and reveal local correlation patterns.}    \label{fig:temporal}
+    \caption{Data reduction through regional filtering: Focusing on Africa to eliminate global overplotting and reveal local correlation patterns.}    \label{fig:region}
 \end{figure}
 
 \subsection{Algorithmic Implementation}
