@@ -25,6 +25,13 @@ vis3_ui <- function(id) {
                                          "Asia" = "asia",
                                          "Europe" = "europe")),
                  
+                 selectizeInput(ns("country_search"), "Find a Country:",
+                                choices = NULL,
+                                options = list(
+                                  placeholder = 'Type to search...',
+                                  onInitialize = I('function() { this.setValue(""); }')
+                                )),
+                 
                  sliderInput(ns("year_select"), "Select Year:",
                              min = 2000, max = 2022, value = 2018,
                              step = 1, sep = "", animate = animationOptions(interval = 1500)),
@@ -241,6 +248,38 @@ vis3_server <- function(id, data_internet, data_literacy) {
     observeEvent(event_data("plotly_click", source = ns("map_literacy")), {
       click <- event_data("plotly_click", source = ns("map_literacy"))
       if(!is.null(click)) selection$code <- if(!is.null(click$location)) click$location else click$key
+    })
+    # --- AJOUT : Mise à jour dynamique des choix de pays ---
+    observeEvent(input$region_focus, {
+      # On récupère les pays de la région active
+      iso_list <- current_region_scope()
+      
+      # On crée une liste nommée (Nom du pays = Code ISO3)
+      choices_map <- full_data_all() %>%
+        filter(`Country Code` %in% iso_list) %>%
+        select(`Country Name`, `Country Code`) %>%
+        distinct() %>%
+        arrange(`Country Name`) %>%
+        { setNames(.$`Country Code`, .$`Country Name`) }
+      
+      updateSelectizeInput(session, "country_search", choices = c("Select a country" = "", choices_map), server = TRUE)
+    })
+    
+    observeEvent(input$country_search, {
+      req(input$country_search)
+      iso <- input$country_search
+      
+      selection$code <- iso
+      
+      geo_tmp <- rnaturalearth::ne_countries(scale = "medium", returnclass = "sf") %>%
+        filter(iso_a3 == iso)
+      
+      if(nrow(geo_tmp) > 0) {
+        coords <- sf::st_coordinates(sf::st_centroid(geo_tmp))
+        
+        view_state$center <- list(lon = coords[1], lat = coords[2])
+        view_state$scale <- 4.5 
+      }
     })
     
     # --- 5. Visualizations ---
