@@ -11,6 +11,8 @@
 \usepackage[margin=2.5cm]{geometry} % Marges standards de 2.5cm
 \usepackage{parskip}             % Ajoute de l'espace entre les paragraphes (plus moderne)
 \usepackage{microtype}           % Améliore grandement la justification du texte
+\usepackage{chngcntr}
+\counterwithin{figure}{section}
 
 % --- LISTES & TITRES ---
 \usepackage{enumitem}            % Pour personnaliser les listes (puces, description)
@@ -168,7 +170,7 @@ Regarding the spatial overview, we juxtaposed the two choropleth maps side-by-si
     \centering
     \includegraphics[width=0.6\textwidth]{Vis_3/zoom_interaction.png}
     \caption{Synchronized zoomed view allowing for local comparison, with specific values revealed via tooltips.}
-    \label{fig:zoom}
+    \label{fig:layout}
 \end{figure}
 
 \subsubsection*{Visual Encoding and Color Strategy}
@@ -180,7 +182,7 @@ For the correlation scatter plot, we employed the \textbf{Viridis} color scale (
     \centering
     \includegraphics[width=0.4\textwidth]{Vis_3/correlation.png}
     \caption{Viridis color scale on the correlation scatter plot.}
-    \label{fig:correlation}
+    \label{fig:layout}
 \end{figure}
 
 
@@ -200,7 +202,7 @@ We also add a red time bar to the Time Series chart to remind users which year t
     \centering
     \includegraphics[width=0.4\textwidth]{Vis_3/temporal_interaction_time_serie.png}
     \caption{The time series chart shows the selected year with a vertical red line marker.}
-    \label{fig:temporal_time_serie}
+    \label{fig:temporal}
 \end{figure}
 
 \subsubsection*{Contextualization and Details-on-Demand}
@@ -210,7 +212,7 @@ The dashboard offers several layers of detail to support in-depth analysis. The 
     \centering
     \includegraphics[width=0.2\textwidth]{Vis_3/tooltip_evolution_over_time.png}
     \caption{Evolution over time tooltip.}
-    \label{fig:tooltip}
+    \label{fig:temporal}
 \end{figure}
 
 To support "details-on-demand," hovering over a country updates a specific "Hover Details" bar chart in the sidebar. For this chart, we opted for a neutral color palette to focus the user's attention purely on the proportional difference between the two metrics, unbiased by the thematic colors. Additionally, a dynamic "Top Ranking" list provides a textual summary of the top 5 performers in the active region, enabling users to rapidly identify top-performing nations within the selected region and verify if high internet adoption aligns with educational leadership.
@@ -219,14 +221,14 @@ To support "details-on-demand," hovering over a country updates a specific "Hove
     \centering
     \includegraphics[width=0.2\textwidth]{Vis_3/hover_details.png}
     \caption{Hover details for direct comparison.}
-    \label{fig:hover}
+    \label{fig:temporal}
 \end{figure}
 
 \begin{figure}[H]
     \centering
     \includegraphics[width=0.2\textwidth]{Vis_3/ranking.png}
     \caption{Ranking according to selected region.}
-    \label{fig:ranking}
+    \label{fig:temporal}
 \end{figure}
 
 Finally, the "Region Focus" selector acts as a global filter. By narrowing the scope to a specific continent (e.g., \textit{Africa}), the system zooms the maps, filters the scatter plot to reduce overplotting, and updates the ranking list. This interaction allows users to shift from a global perspective to a local analysis, revealing correlations that might be masked in the dense global dataset.
@@ -234,7 +236,18 @@ Finally, the "Region Focus" selector acts as a global filter. By narrowing the s
 \begin{figure}[H]
     \centering
     \includegraphics[width=0.6\textwidth]{Vis_3/africa_example.png}
-    \caption{Data reduction through regional filtering: Focusing on Africa to eliminate global overplotting and reveal local correlation patterns.}    \label{fig:region}
+    \caption{Data reduction through regional filtering: Focusing on Africa to eliminate global overplotting and reveal local correlation patterns.}    \label{fig:temporal}
+\end{figure}
+
+\subsubsection*{Country and Region Search}
+
+To facilitate the identification of specific countries within the global dataset, we integrated a search bar based on the \texttt{selectize} library. This component allows for rapid filtering and direct localization (with a automatic zoom on the country selected) and adapts according to the region selected.
+
+\begin{figure}[H]
+    \centering
+    \includegraphics[width=0.2\textwidth]{Vis_3/search_bar_capture.png}
+    \caption{The search bar : users can select a country to trigger an focus and synchronization across the others dashboard components.}
+    \label{fig:search_bar}
 \end{figure}
 
 \subsection{Algorithmic Implementation}
@@ -261,6 +274,98 @@ The linking between views is managed through a global \texttt{selection\$code} r
 \end{enumerate}
 
 \subsection{Results}
+
+The interactive nature of the dashboard allowed for several key insights into the relationship between education and digital development. By manipulating the temporal, spatial, and relational views, we identified three major trends.
+
+\subsubsection*{The Educational Threshold for Digital Adoption}
+As shown in the 2022 global snapshot (Figure \ref{fig:global_corr}), there is a clear threshold effect. The scatter plot analysis reveals that no country achieves more than 50\% internet penetration without first surpassing an 80\% literacy rate. This confirms our initial hypothesis that basic education is a non-negotiable prerequisite for the digital transition.
+
+\begin{figure}[H]
+    \centering
+    \includegraphics[width=0.3\textwidth]{Vis_3/results_correlation.png}
+    \caption{Global correlation in 2022 showing the clustering of developed nations and the minimum literacy threshold required for digital growth.}
+    \label{fig:global_corr}
+\end{figure}.
+
+By animating the data from 2000 to 2022, we observed a recurring pattern in emerging economies: a significant temporal gap between the attainment of high literacy and the surge in digital connectivity. Contrary to the simplistic view that literacy growth linearly drives internet adoption, the data reveals that literacy often reaches a stable plateau long before any significant digital growth occurs. 
+
+We characterize this as \textbf{Latent Potential}. Literacy acts as a ``structural floor'', a necessary cognitive foundation that remains dormant until an external catalyst, such as infrastructure deployment or market liberalization, triggers an explosion in access.
+
+Vietnam serves as a primary example of this trajectory. By selecting Vietnam in the time-series module, we observe that the country had already secured a literacy rate of over 90\% in the early 2000s. However, internet penetration remained below 15\% for several years. This 15-year gap highlights that the population was ``ready to connect'' (educationally prepared) but was waiting for infrastructural catalysts. Once fiber optics and mobile data became affordable post-2010, the country experienced a vertical surge, reaching over 70\% by 2022. The dashboard clearly visualizes this ``leap'' from a stable educational base.
+
+\begin{figure}[H]
+    \centering
+    \includegraphics[width=0.4\textwidth]{Vis_3/vietnam_latent_potential.png}
+    \caption{Analysis of Vietnam's trajectory: The near-universal literacy rate (green), achieved decades ago, represents a massive ``latent potential'' that was only activated after 2005 with the modernization of telecommunications infrastructure.}
+    \label{fig:vietnam_latent_potential}
+\end{figure}
+
+\subsubsection*{Case Study: India and the Infrastructure Trigger}
+A similar pattern is observed in India, but with a more localized trigger. The literacy rate shows steady, incremental growth, while internet access remained largely stagnant until 2015. After this point, the digital curve displays an almost vertical explosion. This observation proves that while the educational floor was rising, the actual explosion was decoupled from literacy and was instead triggered by external economic factors, such as the entry of low-cost telecommunication operators and the mass adoption of smartphones.
+
+\begin{figure}[H]
+    \centering
+    \includegraphics[width=0.4\textwidth]{Vis_3/india_latent_potential.png}
+    \caption{Time-series analysis of India : The visual ``lag'' between stable literacy (green) and the sudden exponential growth of internet access (purple).}
+    \label{fig:lag_analysis}
+\end{figure}
+
+\subsubsection*{The ``Development Trap'' in Low-Literacy Regions}
+To validate the necessity of the educational prerequisite, we utilized the dashboard to analyze countries with low literacy rates ($<40\%$), such as Niger or South Sudan. In these instances, even when infrastructure is introduced, the digital curve fails to follow the same exponential trajectory seen in Vietnam. This confirms a critical insight: \textbf{infrastructure without literacy creates a ceiling.} A population that cannot read or write cannot easily bypass the barriers of a text-heavy digital world, regardless of how cheap the data becomes. This ``Dual Barrier'' (low education + low infrastructure) is clearly visible when comparing these regions with the World Average using the overlay feature.
+
+\begin{figure}[H]
+    \centering
+    \begin{minipage}{0.4\textwidth}
+        \centering
+        \includegraphics[width=\linewidth]{Vis_3/niger_dual_maps_2005.png}
+        \footnotesize{\textbf{(a) Spatial Distribution in 2005: Internet (left) vs. Literacy (right)}}
+    \end{minipage}
+    \begin{minipage}{0.4\textwidth}
+        \centering
+        \includegraphics[width=\linewidth]{Vis_3/niger_timeseries_evolution.png}
+        \footnotesize{\textbf{(b) Longitudinal Evolution (2000-2022)}}
+    \end{minipage}
+
+    \caption{ The juxtaposition in 2005 \textbf{(a)} shows a critical lack of educational foundations. The subsequent time-series \textbf{(b)} demonstrates that despite global technological progress, internet adoption remains stagnant, failing to cross the ``literacy ceiling'' required for an exponential surge.}
+    \label{fig:niger_analysis}
+\end{figure}
+
+In conclusion, while Literacy and Internet Access are highly correlated in a static snapshot, their temporal relationship is characterized by a complex dynamic of \textbf{preparation and activation}. Our findings suggest that literacy acts as a foundational prerequisite—a structural floor—while infrastructure serves as the catalyst that triggers the digital surge.
+
+However, it remains difficult to claim a direct causality. The simultaneous growth of these two indicators is likely influenced by a latent third factor, such as national economic wealth (GDP) or institutional stability, which provides the necessary resources for both educational and technological investment.
+
+\subsubsection*{Regional Analysis of the Digital Divide}
+The 2022 analysis reveals that global progress hasn't erased regional inequalities. While Europe has reached a 'saturation point' with near-universal literacy and digital access, Africa shows extreme dispersion. In many African nations, identical literacy rates lead to vastly different digital outcomes, proving that education alone cannot overcome the barriers of high infrastructure costs and economic instability.
+
+\begin{figure}[H]
+    \centering
+    % --- WORLD ---
+    \begin{minipage}{0.32\textwidth}
+        \centering
+        \includegraphics[width=\linewidth]{Vis_3/world_correlation_2022.png}
+        \vspace{0.1cm}
+        \footnotesize{\textbf{(a) Global Correlation}}
+    \end{minipage}
+    \hfill
+    % --- EUROPE ---
+    \begin{minipage}{0.32\textwidth}
+        \centering
+        \includegraphics[width=\linewidth]{Vis_3/europe_correlation_2022.png}
+        \vspace{0.1cm}
+        \footnotesize{\textbf{(b) Europe (Maturity)}}
+    \end{minipage}
+    \hfill
+    % --- AFRICA ---
+    \begin{minipage}{0.32\textwidth}
+        \centering
+        \includegraphics[width=\linewidth]{Vis_3/africa_correlation_2022.png}
+        \vspace{0.1cm}
+        \footnotesize{\textbf{(c) Africa (High Disparity)}}
+    \end{minipage}
+
+    \caption{Comparative analysis of regional disparities in 2022. The global view \textbf{(a)} masks striking contrasts between European technological saturation \textbf{(b)} and the high heterogeneity of the African continent \textbf{(c)}, where literacy does not yet guarantee equitable digital access.}
+    \label{fig:regional_correlations_2022}
+\end{figure}
 
 \section{Which countries show outlier behavior in Internet access or GDP per capita relative to their regional or income group, and how can these deviations be characterized?}
 
