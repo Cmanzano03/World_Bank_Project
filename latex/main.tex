@@ -385,6 +385,8 @@ A significant challenge was the sparsity of the literacy dataset, as surveys are
 
 The visualisation is designed to support several domain-specific objectives. First, it allows for correlation analysis to verify whether education level is a prerequisite for digital adoption, identifying whether countries align on a positive correlation diagonal or form distinct clusters based on their level of development, and adapts according to region. It can also compare spatial-temporal trends to track the evolution of specific countries over time, determining whether a selected country is “catching up” with the global average or falling behind. Thirdly, it summarises spatial distributions to identify continents that consistently perform well or poorly on both indicators, providing a better understanding of the digital divide. Finally, the interface facilitates ranking and search tasks, allowing users to retrieve exact values for specific items by hovering over them and to identify the best-performing countries in a selected region.
 
+Despite our data cleaning efforts, a significant portion of the literacy dataset remains unavailable for certain nations. We deliberately chose not to fill these persistent gaps with estimated or averaged data. Literacy is a deeply structural and non-linear indicator, it cannot be reliably predicted through simple linear interpolation without risking significant bias. By avoiding artificial imputation, we ensure that our visualization remains a faithful representation of the primary source.
+
 \subsection{Interaction and Visual Encoding}
 
 We follow the Shneiderman's mantra: "Overview first, zoom and filter, then details-on-demand." The interface is structured to prioritize immediate comparison while minimizing cognitive load and scrolling.
@@ -565,7 +567,7 @@ To validate the necessity of the educational prerequisite, we utilized the dashb
     \label{fig:niger_analysis}
 \end{figure}
 
-In conclusion, while Literacy and Internet Access are highly correlated in a static snapshot, their temporal relationship is characterized by a complex dynamic of \textbf{preparation and activation}. Our findings suggest that literacy acts as a foundational prerequisite—a structural floor—while infrastructure serves as the catalyst that triggers the digital surge.
+In conclusion, while Literacy and Internet Access are highly correlated in a static snapshot, their temporal relationship is characterized by a complex dynamic of \textbf{preparation and activation}. Our findings suggest that literacy acts as a foundational prerequisite, a structural floor, while infrastructure serves as the catalyst that triggers the digital surge.
 
 However, it remains difficult to claim a direct causality. The simultaneous growth of these two indicators is likely influenced by a latent third factor, such as national economic wealth (GDP) or institutional stability, which provides the necessary resources for both educational and technological investment.
 
