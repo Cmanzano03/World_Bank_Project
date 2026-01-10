@@ -30,14 +30,17 @@ This project, developed for the **Data Visualization** subject, features an inte
     * 🔍 **Region Filter:** Focus on specific continents.
 * **Purpose:** Allow deeper exploration of relationships beyond simple GDP–Internet correlation, supporting hypothesis generation.
 
-### 🗺️ Q3: Geographic variance of Literacy and Internet access
-* **Visualization:** Choropleth Map (or Cartogram)
-* **Task Abstraction:** *Compare Spatial Distribution* (Spatio-temporal analysis)
+## 🗺️ Q3: Global Comparison of Digital and Educational Access
+* **Visualizations:** Double Choropleth Maps (Juxtaposed) & Coordinated Time-Series.
+* **Data Abstraction:** *Spatio-temporal analysis* of two quantitative indicators: Internet Access (% of population) and Adult Literacy Rate.
 * **Interactions:**
-    * 📆 **Year Dropdown:** Select specific time slices (e.g., 2018).
-    * 🔄 **Indicator Toggle:** Switch between Internet % and Literacy Rate.
-    * 🖱️ **Mini-Time Series:** Click on a country to see its specific history.
-* **Purpose:** Highlight regional disparities in digital and educational access using geographic spatial patterns.
+    * 📆 **Year Slider & Animation:** Select a specific year (2000–2022) or use the "Play" button to observe global evolution live.
+    * 🌍 **Region Focus:** Hierarchical filtering to zoom and analyze specific continents (Africa, Asia, Europe, etc.).
+    * 🔍 **Country Search:** Dynamic search bar (*selectizeInput*) to instantly locate, center, and highlight a specific nation.
+    * 🔗 **Synchronized Navigation:** Bi-directional zoom and pan; moving one map automatically updates the other for perfect spatial comparison.
+    * 📊 **Hover Details & Ranking:** Real-time bar chart in the sidebar for proportional comparison and a dynamic "Top 5" list of regional performers.
+    * 📈 **Coordinated Time-Series:** Click on a country to display its longitudinal history compared to World and Region averages.
+* **Purpose:** Identifying the "Digital Divide" and educational prerequisites by simultaneously comparing spatial patterns and tracking nations that are catching up or falling behind global trends.
 
 ### ⚠️ Q4: Outlier Detection and Anomaly Characterization
 * **Visualization:** Dynamic K-Means Scatterplot + Coordinated Profile Chart
