@@ -30,7 +30,7 @@ This project, developed for the **Data Visualization** subject, features an inte
     * 🔍 **Region Filter:** Focus on specific continents.
 * **Purpose:** Allow deeper exploration of relationships beyond simple GDP–Internet correlation, supporting hypothesis generation.
 
-## 🗺️ Q3: Global Comparison of Digital and Educational Access
+### 🗺️ Q3: Global Comparison of Digital and Educational Access
 * **Visualizations:** Double Choropleth Maps (Juxtaposed) & Coordinated Time-Series.
 * **Data Abstraction:** *Spatio-temporal analysis* of two quantitative indicators: Internet Access (% of population) and Adult Literacy Rate.
 * **Interactions:**
