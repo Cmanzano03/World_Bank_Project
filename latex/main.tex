@@ -657,63 +657,6 @@ Following the visualization design framework, the user's interaction is mapped t
     \item \textbf{Encode:} We map the standardized attributes to position ($x, y$), cluster membership to color, and outlier status to shape (triangle vs. circle) to ensure pre-attentive processing.
     \item \textbf{Reduce:} The system reduces complexity via the strict \texttt{drop\_na} pipeline described above.
     \item \textbf{Select (Details-on-Demand):} Using the coordinated profile view, users select specific points to reveal the Z-scores. This allows characterization (e.g., "This country is an outlier because its Internet Z-score is +2.0 while its GDP Z-score is -0.5").
-\end{itemize}\subsection{Data and Task Abstraction}
-
-To support the algorithmic detection of anomalies, we translated the domain characterization into actionable design requirements. This analysis relies on a specific subset of the primary dataset, transformed through a strict processing pipeline to support unsupervised learning.
-
-\subsubsection{Data Abstraction}
-The dataset is structured as a multidimensional table where the primary **Items** are sovereign countries (identified by ISO-3 codes). The attributes are classified and transformed as follows:
-
-\textbf{1. Attributes and Types}
-\begin{itemize}
-    \item \textbf{Categorical (Identity \& Grouping):}
-    \begin{itemize}
-        \item \textit{Region:} Used for filtering and context.
-        \item \textit{World Bank Income Group:} Used as a "ground truth" label for comparison.
-        \item \textbf{Integration Note:} These are attached via metadata integration using the \texttt{countrycode} library. While \textit{Literacy Rate} was considered, it is excluded from the clustering vector space to avoid data loss due to sparsity.
-    \end{itemize}
-
-    \item \textbf{Quantitative (Sequential \& Transformed):}
-    \begin{itemize}
-        \item \textit{Internet Access (\%):} A ratio variable bounded between 0--100.
-        \item \textit{Log-GDP (Transformed):} The raw GDP variable spans several orders of magnitude (approx. \$200 to \$100,000+). To normalize this heavy right-skew, we compute the base-10 logarithm: $GDP' = \log_{10}(\max(GDP, 1))$. This transformation compresses the scale, ensuring that high-income differences do not dominate the variance.
-        \item \textit{Z-Score (Standardized):} Before clustering, both attributes are scaled to $\mu=0, \sigma=1$ ($z = \frac{x - \mu}{\sigma}$). This is critical to ensure both variables contribute equally to the Euclidean distance calculation.
-    \end{itemize}
-
-    \item \textbf{Ordinal (Derived):}
-    \begin{itemize}
-        \item \textit{Cluster ID:} We execute \textbf{Dynamic K-Means ($k=3$)}. To ensure semantic meaningfulness, the system calculates the "development score" of centroids to dynamically label clusters as \textit{"Low," "Medium,"} and \textit{"High Development,"} creating an ordinal ranking rather than nominal IDs.
-        \item \textit{Outlier Flag (Boolean):} Derived by comparing the Euclidean distance against a user-controlled percentile threshold ($p \in [90, 99]$).
-    \end{itemize}
-\end{itemize}
-
-\textbf{2. Processing Pipeline (Reduction Strategy)}
-Unlike time-series visualizations which allow for imputation, the clustering module requires complete data vectors.
-\begin{enumerate}
-    \item \textbf{Filtering and Joining:} For the selected year, the system performs an \texttt{inner\_join} between GDP and Internet datasets.
-    \item \textbf{Strict Filtering Policy:} Any country lacking a recorded value is explicitly removed (\texttt{drop\_na}). This reduction strategy ensures the K-Means algorithm is not biased by imputed or zero-filled values.
-\end{enumerate}
-
-\subsubsection{Task Abstraction}
-Following the visualization design framework, the user's interaction is mapped to the "Why, What, and How" structure:
-
-\textbf{Why (Goal): Discover and Compare}
-\begin{itemize}
-    \item \textbf{Discover (Outliers):} The primary goal is to \textit{locate} items that exceed the statistical distance threshold. Users search for "triangular" marks that indicate a breakdown in the standard wealth-connectivity correlation.
-    \item \textbf{Compare (Classifications):} Users \textit{compare} the algorithmic \textit{Data-Driven Cluster} against the official \textit{World Bank Income Group} to identify "mismatches" (e.g., a "Lower Middle Income" country appearing in the "High Development" cluster).
-\end{itemize}
-
-\textbf{What (Target): Topology and Features}
-\begin{itemize}
-    \item \textbf{Topology (Anomalies):} The target is not the global trend, but the specific geometric deviations defined by the Euclidean distance of a country's vector from its assigned cluster centroid.
-    \item \textbf{Features (Attributes):} The user seeks to identify which specific attribute (GDP or Internet) is driving the deviation.
-\end{itemize}
-
-\textbf{How (Method): Encode, Reduce, and Select}
-\begin{itemize}
-    \item \textbf{Encode:} We map the standardized attributes to position ($x, y$), cluster membership to color, and outlier status to shape (triangle vs. circle) to ensure pre-attentive processing.
-    \item \textbf{Reduce:} The system reduces complexity via the strict \texttt{drop\_na} pipeline described above.
-    \item \textbf{Select (Details-on-Demand):} Using the coordinated profile view, users select specific points to reveal the Z-scores. This allows characterization (e.g., "This country is an outlier because its Internet Z-score is +2.0 while its GDP Z-score is -0.5").
 \end{itemize}
 
 
@@ -1016,4 +959,47 @@ Finally, the tool exposed limitations in official labels (Figure \ref{fig:2018_m
 \newpage
 \section{Instructions to run the app}
 
+To ensure accessibility and ease of evaluation, the application has been deployed to the cloud. However, it can also be executed locally within the RStudio environment.
+
+\subsection{Option 1: Online Access (Recommended)}
+The most immediate way to interact with the tool is via the web deployment on ShinyApps.io. This version requires no local configuration or installation.
+
+\begin{itemize}
+    \item \textbf{URL:} \href{https://cmanzano.shinyapps.io/World_Bank_Project/}{https://cmanzano.shinyapps.io/World\_Bank\_Project/}
+    \item \textbf{Status:} Active and publicly accessible.
+\end{itemize}
+
+\subsection{Option 2: Local Installation}
+If you wish to run the source code locally, please follow these steps to set up the environment and dependencies.
+
+\subsubsection*{Prerequisites}
+\begin{itemize}
+    \item \textbf{R:} Version 4.0.0 or higher.
+    \item \textbf{RStudio:} Recommended IDE for managing the Shiny runtime.
+\end{itemize}
+
+\subsubsection*{Step 1: Install Dependencies}
+The project relies on a comprehensive suite of R packages for reactivity, geospatial rendering, and data manipulation. We have provided a helper script \texttt{install\_dependencies.R} in the root directory. You can install all required libraries by running the following command in the R console:
+
+\begin{verbatim}
+source("install_dependencies.R")
+\end{verbatim}
+
+Alternatively, the dependencies can be manually installed. They are categorized as follows:
+
+\begin{itemize}
+    \item \textbf{App Framework:} \texttt{shiny}, \texttt{shinydashboard}
+    \item \textbf{Tidyverse \& Data Manipulation:} \texttt{tidyverse} (including \texttt{dplyr}, \texttt{tidyr}, \texttt{readr}, \texttt{tibble}, \texttt{purrr}, \texttt{stringr}, \texttt{forcats}), and \texttt{lubridate} for date handling.
+    \item \textbf{Visualization:} \texttt{ggplot2}, \texttt{plotly}, \texttt{scales}, \texttt{colorspace}.
+    \item \textbf{Geospatial \& Mapping:} \texttt{sf}, \texttt{rnaturalearth}, \texttt{rnaturalearthdata}.
+\end{itemize}
+
+\subsubsection*{Step 2: Run the Application}
+Once the dependencies are installed, open the \texttt{app.R} file in RStudio and click the \textbf{"Run App"} button located at the top right of the script editor, or execute the following command in the console:
+
+\begin{verbatim}
+shiny::runApp()
+\end{verbatim}
+
+\textit{Note: Ensure that the working directory is set to the project root so that relative paths to the modules and CSV data files are resolved correctly.}
 \end{document}

@@ -1,4 +1,23 @@
-.Rproj.user
+# History files
 .Rhistory
 .RData
 .Ruserdata
+
+# RStudio personal settings (CRITICAL to ignore)
+.Rproj.user/
+
+# OAuth tokens (Security)
+.httr-oauth
+.google_auth
+
+# Latex intermediate files (if you keep the latex folder)
+*.log
+*.out
+*.toc
+*.synctex.gz
+*.fls
+*.fdb_latexmk
+
+# System files
+.DS_Store
+Thumbs.db
