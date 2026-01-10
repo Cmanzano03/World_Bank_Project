@@ -100,7 +100,30 @@
 \section{Dataset}
 
 \newpage
-\section{Design abstraction}
+\section{Design Abstraction}
+
+We structured this report by dividing our analysis into the following stages:
+
+\begin{enumerate}
+    \item \textbf{Problem Characterization (Domain Level):} At this highest level, we identify the specific needs of the target audience (e.g., development economists, policymakers). We define the "domain situation" : the vocabulary of the users, their goals, and the questions they are trying to answer regarding global connectivity and wealth. 
+    
+    \item \textbf{Data and Task Abstraction:} In this section, we abstract our domain-specific data into a format suitable for visual encoding and analysis.
+    \begin{itemize}
+        \item \textbf{Data Abstraction (What):} We define the data types (Items, Attributes, Links) and attribute types (Categorical, Ordinal, or Quantitative). For instance, GDP is treated as a \textit{Quantitative Ratio} attribute, while Regions are \textit{Categorical}.
+        \item \textbf{Task Abstraction (Why):} We define what the user intends to do with the data. Common tasks include \textit{Discovering} trends, \textit{Identifying} outliers, or \textit{Comparing} distributions across regions.
+    \end{itemize}
+    
+    \item \textbf{Visual Encoding and Interaction:} This level describes the "How." We select specific \textbf{Marks} (points, lines, areas) and \textbf{Channels} (position, color hue, size) to represent the abstracted data. We also define the interaction idioms, such as \textit{Filtering}, \textit{Zooming}, or \textit{Brushing and Linking}.
+    
+    \item \textbf{Algorithmic Level:} Here we focuses on the computational implementation. This includes the efficiency of the code, the use of R Shiny reactive structures, the uses of different libraries, and the integration of analytical algorithms.
+\end{enumerate}
+
+To maximize the effectiveness of our dashboards, we prioritize channels according to their \textbf{perceptual accuracy}. As per the course principles, spatial position (X and Y coordinates) is the most accurate channel for quantitative data, which is why it is used for our primary correlation analyses. Less accurate channels, such as color saturation or area, are used for secondary attributes like population or literacy intensity.
+
+Given the high dimensionality of World Bank data (hundreds of countries over 20 years), we managed the high dimensionality of the dataset through Coordinated Multiple Views (CMV) and hierarchical filtering. 
+We also use the Logarithmic scale for the GDP axis to mitigate the extreme variance in national wealth, preventing developing nations from being compressed into a single corner and revealing the true underlying correlation that a linear scale would otherwise mask.
+
+Finally, the application's code is structured using a \textbf{Modular Architecture}. Each research question is encapsulated in an independent Shiny module, containing its own internal logic for data processing and visual rendering. 
 
 \newpage
 \section{How has global Internet access evolved over time?}
