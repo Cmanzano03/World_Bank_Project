@@ -177,18 +177,51 @@ We also use the Logarithmic scale for the GDP axis to mitigate the extreme varia
 
 Finally, the application's code is structured using a \textbf{Modular Architecture}. Each research question is encapsulated in an independent Shiny module, containing its own internal logic for data processing and visual rendering. 
 
-\newpage
 \section{How has global Internet access evolved over time?}
 
 \subsection{Problem characterization}
+The "Digital Divide" is a primary concern for international development. Policymakers and economists need to understand not just the current state of connectivity, but the velocity of change across different decades. The domain problem addressed here is the identification of historical growth patterns and the comparison of digital infrastructure trajectories across different economic and geographical clusters. Users need to identify which regions are "catching up" and which have reached a saturation point.
 
 \subsection{Data and task abstraction}
+\begin{itemize}
+    \item \textbf{What (Data):} A temporal dataset spanning 2000--2020. The attributes include \textit{Year} (Ordinal/Temporal), \textit{Region} (Categorical), \textit{Income Group} (Ordinal Metadata), and \textit{Internet Usage} (Quantitative Ratio as a percentage of the population).
+    \item \textbf{Why (Task):} The high-level goal is to \textbf{Discover Trends} and \textbf{Compare} growth rates. Users aim to locate specific years of accelerated growth and identify disparities between income-based clusters.
+\end{itemize}
 
 \subsection{Interaction and visual encoding}
+We utilized a \textbf{Line Chart} as the primary idiom because spatial position on a common scale is the most effective channel for perceiving quantitative trends over time. 
+\begin{itemize}
+    \item \textbf{Marks and Channels:} Lines are the marks. The X-axis encodes time, the Y-axis encodes the usage percentage, and \textit{Color Hue} (using the \texttt{Set2} palette) differentiates geographical regions.
+    \item \textbf{Interaction:} To manage the high density of countries, the module implements a \textbf{Year Range Slider} and a \textbf{Tabbed Sidebar} for faceted filtering (Geography vs. Economics). \texttt{Plotly} tooltips provide \textit{Details-on-Demand}, showing country-specific data without visual clutter.
+\end{itemize}
 
 \subsection{Algorithmic implementation}
+The module is built on a \texttt{reactive()} data pipeline in Shiny. Raw wide-format World Bank CSVs are dynamically transformed into a "tidy" long-format using \texttt{tidyr::pivot\_longer()}. This allows for efficient mapping of the \textit{Year} column to the X-axis. The server-side logic uses an \texttt{observe()} block to update filter choices and a multi-conditional \texttt{dplyr::filter()} to update the \texttt{plot\_ly} object in real-time based on user input from the sidebar.
 
 \subsection{Results}
+The visualization reveals a stark contrast in digital evolution. While High-Income regions reached a saturation plateau (approx. 85--90\%) after 2015, Low-Income regions only began showing significant growth after 2010. 
+
+\begin{figure}[H]
+    \centering
+    \begin{subfigure}[b]{0.48\textwidth}
+        \includegraphics[width=\textwidth]{Vis_1/q1_income_gap.png}
+        \caption{Comparison by Income Group}
+    \end{subfigure}
+    \hfill
+    \begin{subfigure}[b]{0.48\textwidth}
+        \includegraphics[width=\textwidth]{Vis_1/q1_growth_slopes.png}
+        \caption{Regional Growth Acceleration}
+    \end{subfigure}
+    \caption{Evolution of Internet access: (a) demonstrates the persistent digital divide based on wealth; (b) highlights the rapid catch-up slopes in emerging markets during the last decade.}
+    \label{fig:q1_results}
+\end{figure}
+
+\begin{figure}[H]
+    \centering
+    \includegraphics[width=0.7\textwidth]{Vis_1/q1_hover_details.png}
+    \caption{Interactive Detail: Using Plotly tooltips to retrieve specific country metadata and exact percentage values.}
+    \label{fig:q1_interaction}
+\end{figure}
 
 \newpage
 \section{What are the potential correlations and dependencies between Internet access, GDP per capita, and other socioeconomic indicators?} \label{GDP_Internet}
