@@ -72,7 +72,7 @@ intro_ui <- function(id) {
     
     # 3. Footer / Credits
     div(style = "text-align: center; color: #7f8c8d;",
-        p(em("Created for the Data Visualization Course • Year 2024/2025"))
+        p(em("Created for the Data Visualization Course • Year 2025/2026"))
         # You can add your names here if you want
     )
   )
