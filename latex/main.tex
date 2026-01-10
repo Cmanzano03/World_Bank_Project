@@ -95,10 +95,60 @@
 % =========================
 
 \section{Introduction}
+In an increasingly digitized global economy, the "Digital Divide" has emerged as a critical determinant of national development and individual opportunity. This project presents an interactive analytical platform developed for the \textit{Data Visualization} subject, designed to explore the multi-faceted evolution of global Internet usage. 
+
+By integrating high-fidelity data from the World Bank, the application provides a dynamic environment to investigate how connectivity correlates with fundamental socio-economic pillars, including economic output (GDP), educational attainment (Literacy), and labor market inclusivity. 
+
+The core objective is to move beyond static data presentation, offering users the tools to:
+\begin{itemize}
+    \item \textbf{Synthesize Longitudinal Trends:} Track the trajectory of digital adoption across two decades (2000--2020).
+    \item \textbf{Examine Cross-Domain Correlations:} Evaluate the strength of relationships between technological penetration and economic prosperity.
+    \item \textbf{Identify Anomalies:} Utilize unsupervised learning (K-Means Clustering) to detect "digital over-achievers"—nations whose connectivity exceeds expectations based on their economic classification.
+    \item \textbf{Analyze Spatial Disparities:} Compare geographical patterns of literacy and internet access through synchronized mapping.
+\end{itemize}
 
 \newpage
-\section{Dataset}
+\section{Dataset Description}
+The empirical foundation of this project is a longitudinal dataset constructed from the \textbf{World Bank Open Data} repository. It integrates multiple socio-economic indicators with geographical metadata to analyze global development trends.
 
+\subsection{Data Sources and Scope}
+The dataset comprises a panel of annual observations covering the period from \textbf{2000 to 2020}. Data was extracted from the World Development Indicators (WDI) database, specifically utilizing the following raw files:
+\begin{itemize}
+    \item \textbf{GDP.csv:} GDP per capita in current US Dollars.
+    \item \textbf{population.csv:} Total population counts per country.
+    \item \textbf{internet (1).csv:} Percentage of the population with internet access.
+    \item \textbf{female\_laboral\_rate.csv:} Female labor force participation rates.
+    \item \textbf{metadataCountry.csv:} Provides categorical classifications for \textit{Region} and \textit{IncomeGroup}.
+\end{itemize}
+
+\subsection{Variable Dictionary}
+The consolidated analytical dataset (\texttt{cleaned\_world\_bank\_data\_Q2.csv}) contains 4,068 observations. The variables are defined as follows:
+
+\begin{table}[H]
+\centering
+\caption{Description of Variables in the Analytical Dataset}
+\begin{tabular}{|l|l|p{7.5cm}|}
+\hline
+\textbf{Variable Name} & \textbf{Code/Source} & \textbf{Description} \\ \hline
+\texttt{Country.Code} & ISO3 & Unique three-letter country identifier. \\ \hline
+\texttt{Region} & Metadata & Geographical grouping (e.g., Sub-Saharan Africa). \\ \hline
+\texttt{IncomeGroup} & Metadata & Classification based on GNI per capita. \\ \hline
+\texttt{Year} & 2000--2020 & The calendar year of observation. \\ \hline
+\texttt{Population} & SP.POP.TOTL & Total population (de facto). \\ \hline
+\texttt{GDP\_Per\_Capita} & NY.GDP.PCAP.CD & GDP per capita in current US Dollars. \\ \hline
+\texttt{Internet\_Perc} & IT.NET.USER.ZS & Percentage of individuals using the internet. \\ \hline
+\texttt{Female\_Employment} & SL.TLF.CACT.FE.NE & Female labor force participation rate (\% of females 15+). \\ \hline
+\texttt{Log\_GDP} & Derived & Natural logarithm of GDP per capita for statistical normalization. \\ \hline
+\end{tabular}
+\end{table}
+
+\subsection{Data Integration and Pre-processing}
+To prepare the data for the Shiny application, the following steps were implemented in R:
+\begin{enumerate}
+    \item \textbf{Data Pivoting:} The raw World Bank files were converted from a "Wide" format (years as columns) to a "Long" format (years as rows) to ensure a tidy data structure.
+    \item \textbf{Merging:} The disparate CSV files were joined using \texttt{Country Code} and \texttt{Year} as primary keys.
+    \item \textbf{Feature Engineering:} A log-transformation (\texttt{Log\_GDP}) was applied to account for the skewness in global wealth distribution.
+\end{enumerate}
 \newpage
 \section{Design Abstraction}
 
