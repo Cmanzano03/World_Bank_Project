@@ -1,73 +1,100 @@
-# World_Bank_Project
+# 🌍 World Bank Data Visualization Project
 
-Project of the subject Data visualization, where wil be developed an interactive Shiny app for exploring different charts related to the use of internet and its relationship to other variables along different countries of the world.
+![R](https://img.shields.io/badge/R-276DC3?style=for-the-badge&logo=r&logoColor=white)
+![Shiny](https://img.shields.io/badge/Shiny-007BC2?style=for-the-badge&logo=rstudio&logoColor=white)
+![Status](https://img.shields.io/badge/Status-Deployed-success?style=for-the-badge)
 
-## ==**Refined Summary**==
+This project, developed for the **Data Visualization** subject, features an interactive Shiny application designed to explore global Internet usage trends and their relationships with various socioeconomic indicators (GDP, Literacy, Employment) using data from the World Bank.
 
--   **Q1: How has global Internet access evolved over time?**
-    -   **Visualization:** Line Chart
-    -   **Task Abstraction:** *Discover Trends* over *Sequential Time*
-    -   **Filter/Interaction:**
-        -   Year range slider (2000–2020)
-        -   Region or income group selector
-        -   Hover tooltip (country + % Internet users)
-        -   Click legend to toggle regions/countries
-    -   **Purpose:** Identify global and regional connectivity trends; highlight temporal inequalities.
--   **Q2: What are the potential correlations and dependencies between Internet access, GDP per capita, and other socioeconomic indicators?**
-    -   **Visualization:** Dynamic Bubble Scatterplot (optionally linked with Parallel Coordinates or SPLOM, depending on the number of atributes)
-    -   **Task Abstraction:** *Explore / Discover Correlation* among *Multiple Attributes*
-    -   **Filter/Interaction:**
-        -   Year slider or animation (2000–2020)
-        -   Variable selector for X/Y axes (GDP, literacy, female employment)
-        -   Continent/region selector
-            -   Hover tooltip (country, Internet %, selected indicator, population)
-        -   Toggle linear/log GDP axis
-        -   Click to highlight a country’s trajectory (optional)
-    -   **Purpose:** Allow deeper exploration of relationships beyond simple GDP–Internet correlation, supporting hypothesis generation.
--   **Q3: How do literacy rates and Internet access vary across different geographical regions of the world?**
-    -   **Visualization:** Choropleth (or Cartogram)
-    -   **Task Abstraction:** *Compare Spatial Distribution* (justified *spatio-temporal* analysis)
-    -   **Filter/Interaction:**
-        -   Year dropdown (fixed or limited range, e.g. 2018)
-        -   Indicator toggle (Internet % ↔ literacy rate)
-        -   Hover tooltip (country, literacy %, Internet %)
-        -   Click on a country → mini time series of Internet %
-    -   **Purpose:** Highlight regional disparities in digital and educational access using geographic spatial patterns.
--   **Q4: Which countries show outlier behavior in Internet access or GDP per capita relative to their regional or income group, and how can these deviations be characterized?**
-    -   **Visualization:** Dynamic K-Means Scatterplot + Coordinated Profile Chart (Linked Views)
-    -   **Task Abstraction:** *Locate and Identify Outliers* to characterize atypical countries within socioeconomic groups.
-    -   **Controls & Interactions:**
-        -   `Year Slider (2000–2020):` Recalculates the K-Means clustering model dynamically for the selected year.
-        -   `Log/Linear Scale Toggle:` Switches the GDP X-axis to aid visual exploration, demonstrating the necessity of a log scale for this data.
-        -   `Outlier Percentile Slider:` Adjusts the percentile threshold (e.g., p\>=95) used to classify outliers based on their distance from their cluster centroid.
-        -   `VA Integration (K-Means):` Color and grouping are assigned by a K-Means (k=3) model run on two standardized variables: **`Internet users (%)`** and **`log(GDP per capita)`**.
-        -   `Outlier Detection (Shape):` Outliers are marked with a triangle. They are defined as the countries with the largest Euclidean distance from their assigned cluster's centroid in the 2D standardized space (i.e., outside the user-defined percentile).
-        -   **`Hover Interaction 1 (Tooltip):`** The main tooltip is designed to reveal the core *insight* of the analysis by comparing:
-            -   **`K-Means Cluster:`** (e.g., "Medium development")
-            -   **`World Bank Income Group:`** (e.g., "Lower middle income")
-            -   It also provides context with Region, Internet %, GDP, and Literacy %.
-        -   **`Hover Interaction 2 (Coordinated Chart):`** A bar chart in the sidebar updates instantly on hover. It displays the country's **Z-score profile**, visually explaining *why* it was clustered that way by showing its standardized `Internet` and `log(GDP)` values.
-    -   **Purpose:** Identify and explore countries whose digital/economic profile (K-Means) deviates from their official economic classification (World Bank), such as discovering low-income countries with surprisingly high-tech adoption (e.g., Kosovo).
+---
 
-We would perform an unsupervised **k-means clustering** (k=3/4) on **Internet%**, **GDP per capita**, and **Literacy%** to reveal country groupings (e.g., high-GDP/high-Internet; low-GDP/low-Internet; low-GDP/high-Internet). Clusters are used for color encoding in the scatter plot and to highlight countries that deviate from their **World Bank income group**, supporting outlier discovery within the Visual Analytics framework.
+## 📝 Project Summary & Visualizations
 
--   **Q5: How is the global connected population distributed among regions and countries, reflecting the hierarchical structure?**
-    -   **Visualization:** Treemap Chart
-    -   **Task Abstraction:** *Explore Hierarchy and Distribution*
-    -   **Filter/Interaction:**
-        -   Year selector
-        -   Hover tooltip (region, country, total Internet users, % of world total)
-        -   Zoom in/out (Region → Country → Group)
-    -   **Purpose:** Visualize the hierarchical structure of the global Internet population and the dominance of specific regions or countries.
+### 📊 Q1: How has global Internet access evolved over time?
+* **Visualization:** Line Chart
+* **Task Abstraction:** *Discover Trends* over *Sequential Time*
+* **Interactions:**
+    * 📅 **Year range slider:** (2000–2020)
+    * 🌍 **Region selector:** Filter by specific regions or income groups.
+    * 🖱️ **Hover:** Tooltip showing country details and exact %.
+    * 👁️ **Legend Toggle:** Click to hide/show specific groups.
+* **Purpose:** Identify global and regional connectivity trends and highlight temporal inequalities.
 
-# Datasets needed
+### 📈 Q2: Correlations between Internet, GDP, and Socioeconomic factors
+* **Visualization:** Dynamic Bubble Scatterplot
+* **Task Abstraction:** *Explore / Discover Correlation* among *Multiple Attributes*
+* **Interactions:**
+    * ▶️ **Animation:** Auto-play changes from 2000 to 2020.
+    * 🔀 **Variable Selector:** Switch Y-Axis (GDP, Female Employment, etc.).
+    * 📐 **Log Scale Toggle:** Switch GDP axis between Linear and Logarithmic.
+    * 🔍 **Region Filter:** Focus on specific continents.
+* **Purpose:** Allow deeper exploration of relationships beyond simple GDP–Internet correlation, supporting hypothesis generation.
 
-| Indicator                                | World Bank Code  | Used in charts |
-|------------------------------------------|------------------|----------------|
-| Internet users (% of population)         | `IT.NET.USER.ZS` | 1, 2, 3, 4, 5  |
-| GDP per capita (current US\$)            | `NY.GDP.PCAP.CD` | 2, 4           |
-| Literacy rate, adult (% people ages 15+) | `SE.ADT.LITR.ZS` | 3, 4           |
-| Population                               | `SP.POP.TOTL`    | 5              |
-| Region / Income group (metadata)         | —                | All            |
+### 🗺️ Q3: Geographic variance of Literacy and Internet access
+* **Visualization:** Choropleth Map (or Cartogram)
+* **Task Abstraction:** *Compare Spatial Distribution* (Spatio-temporal analysis)
+* **Interactions:**
+    * 📆 **Year Dropdown:** Select specific time slices (e.g., 2018).
+    * 🔄 **Indicator Toggle:** Switch between Internet % and Literacy Rate.
+    * 🖱️ **Mini-Time Series:** Click on a country to see its specific history.
+* **Purpose:** Highlight regional disparities in digital and educational access using geographic spatial patterns.
 
-==Q4: clustering (k-means) to color code the countries in the scatter plot, when you click on a country, its socioeconomic profile in a bar char.==
+### ⚠️ Q4: Outlier Detection and Anomaly Characterization
+* **Visualization:** Dynamic K-Means Scatterplot + Coordinated Profile Chart
+* **Task Abstraction:** *Locate and Identify Outliers* (Characterize atypical countries).
+* **The Algorithm:**
+    * Performs unsupervised **K-Means clustering (k=3)** on *Internet %* and *Log(GDP)*.
+    * Calculates **Z-Scores** to standardize variables.
+    * Identifies outliers based on **Euclidean distance** from the cluster centroid.
+* **Interactions:**
+    * 🔢 **Cluster Controls:** Recalculates the model dynamically based on the selected Year.
+    * 🎚️ **Outlier Threshold:** Adjust the percentile (e.g., p > 95%) to define strictness.
+    * 📊 **Coordinated View:** Hovering over a "Triangle" (outlier) reveals a bar chart showing *why* it is an outlier (e.g., "High Internet but Low GDP").
+* **Purpose:** Discover countries whose digital profile deviates from their official World Bank economic classification (e.g., finding "over-achievers" in low-income groups).
+
+### 🌳 Q5: Hierarchical distribution of the connected population
+* **Visualization:** Treemap Chart
+* **Task Abstraction:** *Explore Hierarchy and Distribution*
+* **Interactions:**
+    * 🔍 **Zoom:** Navigate from Region → Country.
+    * 🖱️ **Tooltip:** View total Internet users and % of the world total.
+* **Purpose:** Visualize the dominance of specific regions (like Asia) or countries (like China/India) in the total global count of connected users.
+
+---
+
+## 💾 Datasets Used
+
+All data is sourced from the World Bank Open Data repository.
+
+| Indicator | World Bank Code | Used in Charts |
+| :--- | :--- | :--- |
+| **Internet users (% of population)** | `IT.NET.USER.ZS` | 1, 2, 3, 4, 5 |
+| **GDP per capita (current US$)** | `NY.GDP.PCAP.CD` | 2, 4 |
+| **Literacy rate (% people ages 15+)** | `SE.ADT.LITR.ZS` | 3, 4 |
+| **Population** | `SP.POP.TOTL` | 5 |
+| **Region / Income group** | *(Metadata)* | All |
+
+---
+
+## 🚀 Instructions to run the app
+
+To ensure accessibility and ease of evaluation, the application has been deployed to the cloud. However, it can also be executed locally within the RStudio environment.
+
+### Option 1: Online Access (Recommended)
+The most immediate way to interact with the tool is via the web deployment on ShinyApps.io. This version requires no local configuration or installation.
+
+* 🔗 **Link:** [Click here to open the World Bank Project App](https://cmanzano.shinyapps.io/World_Bank_Project/)
+* **Status:** ✅ Active
+
+### Option 2: Local Installation
+If you wish to run the source code locally, please follow these steps.
+
+#### Prerequisites
+* **R:** Version 4.0.0 or higher.
+* **RStudio:** Recommended for managing the Shiny runtime.
+
+#### Step 1: Install Dependencies
+We have provided a helper script `install_dependencies.R` in the root directory. You can install all required libraries by running the following command in the R console:
+
+```r
+source("install_dependencies.R")
