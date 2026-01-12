@@ -100,18 +100,27 @@ vis5_server <- function(id, data_internet, data_population, data_regions) {
         "Sub-Saharan Africa"        = "#1E1E1E"   #black
       )
       
+      temp_countries <- data_final %>%
+        filter(!is.na(v), !is.na(p), v > 0, p > 0) %>%
+        mutate(values = (v * p) / 100)
+      
+      # to calculate region totals
+      region_totals <- temp_countries %>%
+        group_by(Region) %>%
+        summarise(region_total_val = sum(values), .groups = 'drop')
+      
       #HIERARCHY
       
       # Level 2: Countries (Parents: Regions)
-      data_countries <- data_final %>%
-        filter(!is.na(v), !is.na(p), v > 0, p > 0) %>%
+      data_countries <- temp_countries %>%
+        left_join(region_totals, by = "Region") %>% 
         mutate(
           labels = paste(name, code),
           parents = Region,
-          values = (v * p) / 100,
           density = v / 100,
           base_color = region_color_map[Region],
-          color = darken(base_color, amount = 0.5 * density)  
+          color = darken(base_color, amount = 0.5 * density),
+          percent_region = values / region_total_val # Ora funziona perché abbiamo fatto il join
         )
       
       # Level 1: Regions 
@@ -121,7 +130,12 @@ vis5_server <- function(id, data_internet, data_population, data_regions) {
           labels = Region,
           parents = "",
           values = 0,  # temporary
-          color=region_color_map[Region]
+          color=region_color_map[Region],
+          #fictitious columns
+          v = 0,             
+          percent_region = 1, 
+          region_total_val = 0,
+          density = 0
         )
       
       #region values = sum of countries values
@@ -138,15 +152,40 @@ vis5_server <- function(id, data_internet, data_population, data_regions) {
       data_hierarchy <- bind_rows(data_regions_hier, data_countries)
       
       #% of world total and total in the country
-      tot_value <- sum(data_hierarchy$values, na.rm = TRUE)
+      tot_value <- sum(data_countries$values, na.rm = TRUE)
       
       data_hierarchy <- data_hierarchy %>%
         mutate(
           percent_total = values / tot_value,
+          
+          # Label visible on the chart (Treemap label)
           text_label = paste0(
             labels, "\n", 
-            format(round(values, 0), big.mark = ","), "\n",  #total in the country
-            round(percent_total*100, 2), "%" #% of world total
+            format(round(values, 0), big.mark = ","), "\n",  
+            round(percent_total*100, 2), "%" 
+          ),
+          
+          # Tooltip Logic:
+          # If parents == "" we are at the REGION level -> show general info
+          # Otherwise we are at the COUNTRY level -> show detailed info
+          hover_html = ifelse(
+            parents == "",
+            # HTML for Regions
+            paste0(
+              "<b>", labels, "</b><br>",
+              "Total Users: ", format(round(values, 0), big.mark = ","), "<br>",
+              "World Share: ", format(round(percent_total * 100, 2), nsmall=2), "%"
+            ),
+            # HTML for Countries
+            paste0(
+              "<b>", labels, "</b><br>",
+              "Region: ", parents, "<br>",
+              "Internet Users: ", format(round(values, 0), big.mark = ","), "<br>",
+              "<br>", 
+              "World Share: ", format(round(percent_total * 100, 2), nsmall=2), "%<br>",
+              "Region Share: ", format(round(percent_region * 100, 2), nsmall=2), "%<br>",
+              "Internet Access Density: ", format(round(v, 1), nsmall=1), "%"
+            )
           )
         )
       
@@ -160,11 +199,8 @@ vis5_server <- function(id, data_internet, data_population, data_regions) {
         branchvalues = "total",
         texttemplate = ~text_label,
         textposition = "middle",
-        hovertemplate = paste( "<b>%{label}</b><br>",
-                               "Region: %{parent}<br>",
-                               "Internet users: %{value:,.0f}<br>",
-                               "% of world total: %{percentEntry:.2%}<br>",
-                               "<extra></extra>" ),
+        customdata = ~hover_html,
+        hovertemplate = "%{customdata}<extra></extra>",
         marker = list(
           colors = ~color,
           line = list(width = 1, color = "white")
