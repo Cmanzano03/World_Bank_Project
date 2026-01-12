@@ -19,6 +19,9 @@
 \usepackage{enumitem}            % Pour personnaliser les listes (puces, description)
 \usepackage{titlesec}            % Pour le style des titres
 
+% --- MATH --- 
+\usepackage{amsmath}
+
 % --- LIENS HYPERTEXTES ---
 \usepackage{hyperref}
 \hypersetup{
@@ -1058,15 +1061,290 @@ Finally, the tool exposed limitations in official labels (Figure \ref{fig:2018_m
 \newpage
 \section{How is the global connected population distributed among regions and countries, reflecting the hierarchical structure?}
 
-\subsection{Problem characterization}
+\subsection{Problem Characterization}
 
-\subsection{Data and task abstraction}
+Usually, internet access is measured as a percentage of the population. While this is useful to see how developed a country is, it does not tell the full story. A high percentage in a very small country represents fewer people than a low percentage in a giant country like China or India. To really understand the global internet, we need to look at the actual number of users, not just the rates.
 
-\subsection{Interaction and visual encoding}
+The main problem addressed in this section is that standard charts (like bar charts or tables) often hide the true "size" of a country's digital presence. Analysts need a way to see both the geography and the volume of users at the same time.
 
-\subsection{Algorithmic implementation}
+The specific challenges in visualizing this data are:
+
+\begin{itemize}
+    \item \textbf{Percentage vs. Real Numbers:} A major issue is confusing a high adoption rate with a high number of users. For example, a small nation might have 90\% internet access, but a large nation with only 50\% access has millions more users. The challenge is to combine population data with internet data to show the real scale of the market.
+    
+    \item \textbf{Regional Structure:} Countries are part of larger regions (like "East Asia" or "Europe"). A simple list of countries makes it hard to see which regions are dominant. Users need to understand if a region is powerful because it has many strong countries or just one giant country (like the USA in North America).
+    
+    \item \textbf{Changes Over Time:} The distribution of internet users has changed a lot since 1990. The "center" of the internet world has moved from Western countries to Asia and the Global South. It is difficult to see this historical shift without a dynamic visualization.
+\end{itemize}
+
+Therefore, the objective of this analysis is to create a hierarchical map (Treemap) where the size of each block represents the total number of internet users. This allows users to immediately see which regions and countries dominate the digital world and how this has evolved over the years.
+
+\subsection{Data and Task Abstraction}
+
+To translate the domain characterization into actionable design requirements, we analyze the dataset structure and abstract the user's goals into generic visualization tasks.
+
+\subsubsection{Data Abstraction}
+The underlying dataset is constructed by merging three separate sources: Internet usage, Population, and Regional Metadata. The data abstraction follows a strict hierarchical definition:
+
+\begin{itemize}
+    \item \textbf{Items:} The primary items are countries, observed annually.
+    
+    \item \textbf{Attributes:}
+    \begin{itemize}
+        \item \textbf{Categorical (Identity \& Hierarchy):} 
+        \begin{itemize}
+            \item \textit{Region:} Serves as the "Parent" node (e.g., East Asia \& Pacific).
+            \item \textit{Country Name/Code:} Serves as the "Child" leaf node (e.g., China, CHN).
+        \end{itemize}
+        
+        \item \textbf{Quantitative (Source):}
+        \begin{itemize}
+            \item \textit{Internet Access ($v$):} The penetration rate (\% of population).
+            \item \textit{Population ($p$):} Total inhabitants.
+        \end{itemize}
+
+        \item \textbf{Quantitative (Derived for Visual Encoding):} 
+        \begin{itemize}
+            \item \textit{Total Internet Users (Size):} To visualize "magnitude," the system computes the absolute volume: $ \text{Value} = (v \times p) / 100 $. This value determines the area of each rectangle.
+            \item \textit{Density (Color Value):} The raw Internet Access rate ($v$) is mapped to color saturation. Using the \texttt{darken()} function, countries with higher connectivity rates appear in a more intense shade of their regional color.
+        \end{itemize}
+
+        \item \textbf{Quantitative (Derived for Context):}
+        To support detailed analysis in the tooltip, the system calculates relative shares during the data processing pipeline:
+        \begin{itemize}
+            \item \textit{World Share:} The country's users divided by the global total.
+            \item \textit{Region Share:} The country's users divided by its specific regional total (e.g., "China represents 63.78\% of East Asia").
+        \end{itemize}
+    \end{itemize}
+    
+    \item \textbf{Processing Pipeline:}
+    The system employs a specific "pre-calculation" strategy to ensure accuracy:
+    \begin{enumerate}
+        \item \textbf{Join \& Filter:} Internet and Population datasets are joined by Country Code.
+        \item \textbf{Regional Aggregation:} Before building the hierarchy, the system groups countries by Region to calculate the \textit{Region Total}. This step is critical to correctly derive the \textit{Region Share} for the tooltip.
+        \item \textbf{HTML Pre-calculation:} To ensure robust rendering, the textual content of the tooltip is pre-formatted as an HTML string directly within the data frame logic, distinguishing between "Parent" nodes (Regions) and "Leaf" nodes (Countries).
+    \end{enumerate}
+\end{itemize}
+
+\subsubsection{Task Abstraction}
+Following the visualization design framework, the user's interaction is mapped to the "Why, What, and How" structure:
+
+\textbf{Why (Goal): Explore and Assess Hierarchy}
+\begin{itemize}
+    \item \textbf{Explore (Distribution):} The user intends to explore how the internet population is distributed across geopolitical hierarchies.
+    \item \textbf{Assess (dominance):} The goal is to evaluate dominance at two levels: global (which Region is biggest?) and local (which Country dominates its Region?).
+\end{itemize}
+
+\textbf{What (Target): Topology and Magnitude}
+\begin{itemize}
+    \item \textbf{Topology:} The nested relationship between macro-regions and nations.
+    \item \textbf{Magnitude:} The absolute size of the user base (Volume) contrasted with the development level (Penetration Rate).
+\end{itemize}
+
+\textbf{How (Method): Encode, Navigate, and Details-on-Demand}
+\begin{itemize}
+    \item \textbf{Encode:} 
+    \begin{itemize}
+        \item \textit{Size (Area):} Mapped to the total number of users.
+        \item \textit{Color (Hue):} Categorical mapping for Regions.
+        \item \textit{Color (Lightness):} Quantitative mapping for Internet Access \% (darker = higher penetration).
+    \end{itemize}
+    
+    \item \textbf{Navigate (Temporal):} The Year Slider allows users to traverse the longitudinal dimension (1990–2024), observing the historical shift of digital mass from West to East.
+    
+    \item \textbf{Details-on-Demand (Multi-level Tooltip):} 
+    Hovering over a country triggers a "contextual popup" that solves the ambiguity between size and rate. It simultaneously displays:
+    \begin{enumerate}
+        \item \textbf{Magnitude:} Total absolute users.
+        \item \textbf{Global Context:} \% of the World Total.
+        \item \textbf{Local Context:} \% of the Regional Total (highlighting hegemons).
+        \item \textbf{Development Context:} Internet Access Rate (distinguishing populated but disconnected countries from digitally mature ones).
+    \end{enumerate}
+\end{itemize}
+
+\subsection{Interaction and Visual Encoding}
+
+To address the challenge of visualizing hierarchical magnitude while maintaining the ability to compare distinct geopolitical clusters, we selected the \textbf{Treemap Chart}. This idiom serves as a prime example of a "Space-Filling" layout: it utilizes the entire available screen real estate to represent the weight of the "digital mass," solving the problem of visualizing absolute numbers (Total Users) rather than just abstract rates.
+
+\subsubsection{Visual Encoding: Marks and Channels}
+Following the "Building Blocks" framework, the visualization is constructed using \textbf{Nested Rectangles} (2D Areas) to represent the hierarchy (Region $\rightarrow$ Country). The visual channels were mapped to encoded attributes based on perceptual effectiveness:
+
+\begin{itemize}
+    \item \textbf{Size (Area):} The derived attribute \textit{Total Internet Users} determines the surface area of each leaf node.
+    \begin{itemize}
+        \item \textit{Justification:} Spatial area is the most effective channel for communicating part-to-whole relationships. This encoding allows the user to immediately perceive the dominance of specific nations (e.g., China's massive rectangle) relative to the global total, a task that would be impossible with a standard bar chart due to the number of countries involved.
+    \end{itemize}
+
+    \item \textbf{Color (Hue):} A categorical palette distinguishes the \textit{Parent Region}.
+    \begin{itemize}
+        \item \textit{Justification:} As noted in design literature, hue is the primary channel for nominal data (identity). We assigned distinct, recognizable colors to the 7 macro-regions (e.g., Blue for East Asia, Red for Europe) to allow users to scan the chart and identify geographic clusters pre-attentively.
+    \end{itemize}
+
+    \item \textbf{Color (Value/Saturation):} Within each rectangle, the color intensity is modulated by the \textit{Internet Access Rate} ($v$).
+    \begin{itemize}
+        \item \textit{Implementation:} We utilized a programmatic approach using the \texttt{darken()} function. Countries with higher penetration rates are rendered in darker shades, while those with lower connectivity appear lighter.
+        \item \textit{Justification:} This adds a third layer of information without requiring 3D. It allows the user to distinguish between "Large but Disconnected" populations (Large Area, Light Color) and "Small but Highly Connected" ones (Small Area, Dark Color).
+    \end{itemize}
+    
+    \item \textbf{Spatial Layout (Hierarchy):} The algorithmic layout groups countries inside their parent region.
+    \begin{itemize}
+        \item \textit{Justification:} This grouping reinforces the topological relationship defined in the Data Abstraction, ensuring that the user understands the geopolitical composition of the digital world.
+    \end{itemize}
+\end{itemize}
+
+\begin{figure}[H]
+    \centering
+    \includegraphics[width=1.0\textwidth]{Vis_5/vis_5_1.png}
+    \caption{\textbf{Global Overview.} The Treemap layout shows the hierarchical distribution of internet users. The area of each rectangle represents the absolute number of users, while the color hue distinguishes the region.}
+    \label{fig:treemap_overview}
+\end{figure}
+
+\subsubsection{Interaction: Managing Complexity}
+The dataset spans 34 years and includes over 200 countries. Displaying this volume of data simultaneously would result in occlusion and cognitive overload. We adopted a combination of "Navigation" and "Details-on-Demand" strategies:
+
+\begin{enumerate}
+    \item \textbf{Temporal Navigation (Year Slider):} 
+    Since a Treemap represents a static snapshot of a distribution, the longitudinal dimension is managed via interaction.
+    \begin{itemize}
+        \item \textit{Implementation:} A slider control allows the user to traverse the dataset from 1990 to 2024.
+        \item \textit{Justification:} This allows the user to animate the visualization manually, observing the historical shift of the "center of gravity" of the internet population from North America to Asia over three decades.
+    \end{itemize}
+
+    \item \textbf{Hierarchical Drill-Down (Zoom):} 
+    The limitation of Treemaps is that small data points (small countries) often become invisible at the global scale.
+    \begin{itemize}
+        \item \textit{Implementation:} The interactive engine (Plotly) allows users to click on a Region header (e.g., "Europe \& Central Asia") to zoom into that specific branch of the tree.
+        \item \textit{Justification:} This adheres to Shneiderman's mantra ("Overview first, zoom and filter..."), allowing users to inspect the internal composition of a region without visual noise from the rest of the world.
+    \end{itemize}
+
+    \begin{figure}[H]
+        \centering
+        \includegraphics[width=1.0\textwidth]{Vis_5/vis_5_3.png}
+        \caption{\textbf{Hierarchical Drill-Down.} The result of clicking on the "East Asia \& Pacific" header. The visualization zooms in to isolate this specific branch, allowing users to compare constituent countries (e.g., Japan, Indonesia) without visual interference from other regions.}
+        \label{fig:treemap_zoom}
+    \end{figure}
+
+    \item \textbf{Details-on-Demand (Contextual Tooltip):} 
+    While Area is good for rough comparison, it lacks numerical precision.
+    \begin{itemize}
+        \item \textit{Implementation:} We engineered a custom HTML tooltip that changes content based on the hierarchy level. Hovering over a country reveals precise metrics that are not visually encoded, specifically the \textit{Internet Access Density} and the calculated \textit{Region Share}.
+        \item \textit{Justification:} This bridges the gap between the "Overview" (Visual Shape) and "Specifics" (Exact Numbers), solving the ambiguity of estimating exact percentages from area sizes.
+    \end{itemize}
+
+    \begin{figure}[H]
+        \centering
+        \includegraphics[width=0.6\textwidth]{Vis_5/vis_5_2.png}
+        \caption{\textbf{Details-on-Demand.} The HTML-formatted tooltip reveals specific metrics (World Share, Region Share) and the Internet Access rate, resolving the ambiguity of the area-based encoding.}
+        \label{fig:treemap_tooltip}
+    \end{figure}
+
+\end{enumerate}
+
+\subsection{Algorithmic Implementation}
+
+The technical implementation of the hierarchical visualization leverages the R Shiny framework for reactive state management and the Plotly JavaScript library for the high-performance rendering of nested geometries. The system is architected around a linear reactive pipeline that transforms flat tabular data into a hierarchical graph structure suitable for the Treemap algorithm.
+
+\subsubsection{Reactive Data Pipeline}
+To ensure data consistency across the multi-dimensional dataset (Internet, Population, Regions), the data processing is handled within a single reactive context. The pipeline executes the following "Extract-Transform-Load" (ETL) operations whenever the \texttt{input\$year} parameter is modified:
+
+\begin{enumerate}
+    \item \textbf{Dynamic Column Selection:} The system uses non-standard evaluation (NSE) to dynamically select the column corresponding to the user's input. The code uses \texttt{!!sym(selected\_year)} to extract the specific year vector from both the Internet and Population matrices.
+    
+    \item \textbf{Intersection Strategy (Inner Joins):} To guarantee data integrity, the system employs a dual \texttt{inner\_join} strategy. 
+    \begin{itemize}
+        \item First, the Internet data is joined with the Regional Metadata to assign parent nodes.
+        \item Second, the result is joined with the Population dataset.
+        \item \textit{Constraint:} This strict joining policy acts as an implicit filter, automatically removing any country that lacks data in any of the three sources (Internet, Population, or Region), preventing null-pointer errors in the visualization.
+    \end{itemize}
+\end{enumerate}
+
+\subsubsection{Hierarchical Data Construction}
+Unlike standard charts (e.g., scatterplots) that consume flat tables, a Treemap requires a specific data topology where both "Parents" (Regions) and "Children" (Countries) exist as distinct rows in the same dataframe. The algorithm constructs this hierarchy in three steps:
+
+\begin{enumerate}
+    \item \textbf{Metric Derivation (The "Digital Mass"):} 
+    The raw data provides rates ($v$) and totals ($p$). The algorithm computes the absolute magnitude vector ($Values$) used for the area encoding:
+    $$ Values_{country} = \frac{Internet \% \times Population_{total}}{100} $$
+    
+    \item \textbf{Regional Aggregation:} 
+    Before binding the levels, the system performs an intermediate aggregation step. It groups the country-level data by Region to calculate the \texttt{region\_total\_val}. This pre-calculation is critical for the "Details-on-Demand" feature, enabling the derivation of the \textit{Region Share} metric ($Values_{country} / Values_{region}$) which is not inherent in the raw data.
+
+    \item \textbf{Level Binding:} 
+    The algorithm constructs two separate data frames:
+    \begin{itemize}
+        \item \texttt{data\_regions\_hier}: Represents the root nodes (Parent = "").
+        \item \texttt{data\_countries}: Represents the leaf nodes (Parent = Region).
+    \end{itemize}
+    These are combined using \texttt{bind\_rows()}, creating the final dataset where the \texttt{values} of the parents are mathematically consistent with the sum of their children.
+\end{enumerate}
+
+\subsubsection{Rendering and Custom Interaction Logic}
+The final visualization is rendered using \texttt{plot\_ly(type = "treemap")}. To overcome the limitations of standard tooltip formatting in nested structures, we implemented a custom string construction logic:
+
+\begin{itemize}
+    \item \textbf{Conditional HTML Generation:} 
+    Instead of relying on Plotly's native formatting, the HTML string for the tooltip is pre-calculated within the R pipeline. The system uses a conditional vector operation (\texttt{ifelse(parents == "")}) to generate different HTML structures:
+    \begin{itemize}
+        \item \textit{Parent Nodes:} Display only the aggregate count and global share.
+        \item \textit{Leaf Nodes:} Display the full profile, including the newly calculated \textit{Region Share} and \textit{Internet Access} density.
+    \end{itemize}
+    
+    \item \textbf{Client-Side Injection:} 
+    This pre-formatted HTML string is passed to the \texttt{customdata} slot. The \texttt{hovertemplate} is then configured to simply render this raw string ($\%\{customdata\}$) and suppress the default trace label ($\text{<extra></extra>}$), ensuring a clean, data-rich user interface.
+\end{itemize}
 
 \subsection{Results}
+
+The interactive nature of the Hierarchical Treemap allowed for a deep exploration of the global digital landscape, moving beyond simple adoption rates to visualize the "center of gravity" of the connected population. By manipulating the temporal slider and drilling down into specific regions, three key structural patterns emerged.
+
+\subsubsection{The Geopolitical Shift: The Rise of the Asian Giants}
+The most significant finding revealed by the temporal animation (1990–4) is the radical relocation of the digital population from the West to the East.
+\begin{itemize}
+    \item \textbf{The Western Dominance (Early Era):} In the early years of the timeline (1990–2005), the visualization is visually dominated by \textit{North America} and \textit{Europe}. Despite their smaller geographical populations, their early adoption rates resulted in a disproportionately large area size in the Treemap.
+     \begin{figure}[H]
+        \centering
+        \includegraphics[width=1.0\textwidth]{Vis_5/vis_5_4.png}
+        \caption{\textbf{The Digital Landscape in 2000.} This snapshot illustrates the early era of the digital divide, visually dominated by North America and Europe. Notably, within the East Asia region, Japan (9.73\%) still outweighs China (5.73\%) in total digital mass, a dynamic that completely reverses in the modern era.}
+    \label{fig:treemap_2000}
+    \end{figure}
+    \item \textbf{The Eastern Takeover (Modern Era):} By moving the slider to 2005 and beyond, a massive structural change occurs. As shown in the drill-down analysis (Figure \ref{fig:treemap_zoom}), the \textit{East Asia \& Pacific} region expands to occupy the largest portion of the screen. Specifically, \textbf{China} emerges as the single largest digital entity.
+    \item \textbf{Validation:} The tooltip confirms this dominance. In the analyzed snapshot (Figure \ref{fig:treemap_tooltip}), in 2016 China alone accounts for approximately \textbf{25\% of the entire global internet population} and over \textbf{63\% of its region}. This validates the hypothesis that demographic mass, once activated by infrastructure, outweighs early adoption advantages.
+\end{itemize}
+
+\subsubsection{The "Volume vs. Intensity" Paradox}
+The multi-channel encoding (Size for Volume, Color for Rate) allowed us to distinguish between "Mature Markets" and "Emerging Giants."
+\begin{itemize}
+    \item \textbf{Visual Contrast:} We observed a recurring pattern where smaller rectangles appeared in darker colors (high saturation), while massive rectangles appeared in lighter shades.
+    \item \textbf{Case Study 2016 - Japan vs. Indonesia:} Within the East Asia branch in 2016 (Figure \ref{fig:treemap_zoom}), Japan is represented by a relatively small but very dark blue block, indicating a saturated market (High Penetration, Low Population Growth). In contrast, Indonesia appears as a rapidly expanding block with a lighter hue. This visually communicates that while Indonesia has a lower percentage of connected citizens, its contribution to the total global traffic (Volume) is already eclipsing traditional technological powers.
+\end{itemize}
+
+\subsubsection{3. Regional Structures: Hegemony vs. Fragmentation}
+The hierarchical layout revealed distinct political structures within different macro-regions, which would be hidden in a flat list of countries.
+\begin{itemize}
+    \item \textbf{North America (The Monolith):} This region through the years is always visually constructed as a near-monolith, dominated almost entirely (around 90\%) by a single rectangle: the United States.
+     \begin{figure}[H]
+        \centering
+        \includegraphics[width=1.0\textwidth]{Vis_5/vis_5_5.png}
+        \caption{\textbf{North America: The Monolith.} Drill-down view (2020) showing US dominance: the tooltip confirms that a single country accounts for \textbf{89.51\%} of the regional internet population.}
+        \label{fig:treemap_usa}
+    \end{figure}
+    \item \textbf{Europe (The Mosaic):} Conversely, the European region appears as a fragmented mosaic of medium-sized blocks (Germany, UK, France, Italy). No single country dominates the view.
+    \begin{figure}[H]
+        \centering
+        \includegraphics[width=1.0\textwidth]{Vis_5/vis_5_6.png}
+        \caption{\textbf{Europe: The Mosaic.} Drill-down view (2020) revealing a fragmented structure. In sharp contrast to North America, digital power here is distributed across multiple nations (Russia, Germany, UK), with no single country holding a hegemonic majority.}
+        \label{fig:treemap_europe}
+    \end{figure}
+    \item \textbf{Insight:} This contrast suggests that digital policy and market strategies must be fundamentally different across regions: unified and continental for North America, but federated and multi-national for Europe.
+\end{itemize}
+
+\subsubsection{Conclusion on Design Effectiveness}
+These insights confirm the effectiveness of the design choices tailored to the problem characterization:
+\begin{itemize}
+    \item The \textbf{Area-based encoding} successfully solved the problem of "Scale," forcing the user to acknowledge the sheer magnitude of users in the Global South, which is often minimized in standard bar charts.
+    \item The \textbf{Hierarchical Drill-down} was critical for revealing local power dynamics (e.g., China's 63\% share of Asia) that were obscured in the global view.
+    \item The \textbf{HTML Tooltip} effectively bridged the gap between the visual overview and statistical precision, allowing for the exact quantification of the "World Share" metrics.
+\end{itemize}
 
 \newpage
 \section{Instructions to run the app}
