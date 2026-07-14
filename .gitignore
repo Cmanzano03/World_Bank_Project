@@ -18,6 +18,10 @@
 *.fls
 *.fdb_latexmk
 
+# Optional generated/deployment folders
+latex/
+rsconnect/
+
 # System files
 .DS_Store
 Thumbs.db
